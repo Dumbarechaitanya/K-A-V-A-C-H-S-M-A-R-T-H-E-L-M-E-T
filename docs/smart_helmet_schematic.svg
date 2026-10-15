@@ -1,0 +1,603 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1200" width="1920" height="1200" style="background:#ffffff; font-family:'Segoe UI', Arial, sans-serif;">
+  <defs>
+    <!-- Background Grid -->
+    <pattern id="cad-grid-fine" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+    <pattern id="cad-grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
+      <rect width="100" height="100" fill="url(#cad-grid-fine)" />
+      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#e2e8f0" stroke-width="1.2"/>
+    </pattern>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="box-shadow" x="-3%" y="-3%" width="106%" height="106%">
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Base Grid Background -->
+  <rect width="100%" height="100%" fill="url(#cad-grid-major)" />
+
+  <!-- Outer Drawing Sheet Border -->
+  <rect x="30" y="30" width="1860" height="1140" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+  <rect x="35" y="35" width="1850" height="1130" fill="none" stroke="#64748b" stroke-width="1"/>
+
+  <!-- ========================================================================= -->
+  <!-- TITLE BLOCK (Bottom Right Corner: X=1420..1880, Y=1040..1160) -->
+  <!-- ========================================================================= -->
+  <g transform="translate(1420, 1040)">
+    <rect width="460" height="120" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
+    <line x1="0" y1="30" x2="460" y2="30" stroke="#1e293b" stroke-width="1"/>
+    <line x1="0" y1="60" x2="460" y2="60" stroke="#1e293b" stroke-width="1"/>
+    <line x1="0" y1="90" x2="460" y2="90" stroke="#1e293b" stroke-width="1"/>
+    <line x1="300" y1="30" x2="300" y2="120" stroke="#1e293b" stroke-width="1"/>
+    
+    <text x="15" y="21" font-size="14" font-weight="bold" fill="#0f172a">PROJECT: KAVACH SMART HELMET (IoE SYSTEM)</text>
+    <text x="15" y="50" font-size="11" font-weight="600" fill="#334155">DWG: COMPLETE ELECTRICAL SCHEMATIC DIAGRAM</text>
+    <text x="15" y="80" font-size="10" fill="#475569">MCU: ESP32 DEVKIT V1 (ESP-WROOM-32 30-PIN)</text>
+    <text x="15" y="110" font-size="10" fill="#475569">POWER: 3.7V 18650 Li-Ion + TP4056 + 5V BOOST</text>
+    
+    <text x="315" y="50" font-size="10" fill="#475569">REV: 3.0 (ACCURATE)</text>
+    <text x="315" y="80" font-size="10" fill="#475569">DATE: 2026-10-04</text>
+    <text x="315" y="110" font-size="10" font-weight="bold" fill="#16a34a">STATUS: VERIFIED</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- LEGEND (Top Right: X=1420..1880, Y=45..190) -->
+  <!-- ========================================================================= -->
+  <g transform="translate(1420, 45)">
+    <rect width="460" height="150" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" filter="url(#box-shadow)"/>
+    <rect width="460" height="28" rx="6" fill="#f8fafc"/>
+    <text x="15" y="19" font-size="12" font-weight="bold" fill="#1e293b">SCHEMATIC BUS &amp; SIGNAL COLOR CODES</text>
+    
+    <line x1="20" y1="45" x2="60" y2="45" stroke="#e11d48" stroke-width="3.5"/>
+    <text x="70" y="49" font-size="11" font-weight="600" fill="#334155">+5.0V Regulated Boost Rail (Powers ESP32 VIN &amp; Audio Amp)</text>
+    
+    <line x1="20" y1="70" x2="60" y2="70" stroke="#f97316" stroke-width="3"/>
+    <text x="70" y="74" font-size="11" font-weight="600" fill="#334155">+3.3V ESP32 LDO Rail (Powers GPS, MPU-6050, IR, Touch)</text>
+    
+    <line x1="20" y1="95" x2="60" y2="95" stroke="#0284c7" stroke-width="3"/>
+    <text x="70" y="99" font-size="11" font-weight="600" fill="#334155">3.7V - 4.2V Li-Ion Battery Direct Bus (VBAT)</text>
+    
+    <line x1="20" y1="120" x2="60" y2="120" stroke="#0f172a" stroke-width="3"/>
+    <text x="70" y="124" font-size="11" font-weight="600" fill="#334155">Common System Ground (GND)</text>
+    
+    <line x1="20" y1="140" x2="60" y2="140" stroke="#8b5cf6" stroke-width="2.5" stroke-dasharray="4,2"/>
+    <text x="70" y="143" font-size="10" fill="#475569">Digital Bus Lines (I2C SDA/SCL, UART TX/RX, I2S Audio, GPIOs)</text>
+  </g>
+
+
+  <!-- ========================================================================= -->
+  <!-- CENTER: ESP32 DEVKIT V1 (30-PIN MICROCONTROLLER) -->
+  <!-- Box: X=760..1120, Y=220..980 (W=360, H=760) -->
+  <!-- ========================================================================= -->
+  <g transform="translate(760, 220)">
+    <!-- Main IC Body -->
+    <rect x="0" y="0" width="360" height="760" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="2.5" filter="url(#box-shadow)"/>
+    
+    <!-- IC Header -->
+    <rect x="0" y="0" width="360" height="50" rx="8" fill="#1e293b"/>
+    <text x="180" y="26" font-size="15" font-weight="bold" fill="#38bdf8" text-anchor="middle">ESP32 DEVKIT V1</text>
+    <text x="180" y="42" font-size="10" fill="#94a3b8" text-anchor="middle">30-PIN ESP-WROOM-32 DUAL CORE MCU</text>
+
+    <!-- Top Antenna Pattern -->
+    <path d="M 130 0 L 130 -20 L 230 -20 L 230 0" fill="none" stroke="#e2e8f0" stroke-width="2"/>
+    <path d="M 145 -20 L 145 -5 M 165 -20 L 165 -5 M 185 -20 L 185 -5 M 205 -20 L 205 -5 M 215 -20 L 215 -5" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="180" y="-24" font-size="9" fill="#64748b" text-anchor="middle">2.4 GHz Wi-Fi / BLE ANTENNA</text>
+
+    <!-- LEFT PINS (15 Pins, X=0) -->
+    <!-- Pin 1: 3V3 -->
+    <g transform="translate(0, 60)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#f97316"/>
+      <text x="12" y="5" font-size="12" font-weight="bold" fill="#f97316">3V3</text>
+      <text x="45" y="5" font-size="9" fill="#cbd5e1">(3.3V Out)</text>
+    </g>
+    <!-- Pin 2: EN -->
+    <g transform="translate(0, 100)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="12" y="5" font-size="11" fill="#94a3b8">EN (Reset)</text>
+    </g>
+    <!-- Pin 3: GPIO 36 (BATTERY ADC) -->
+    <g transform="translate(0, 140)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#38bdf8"/>
+      <text x="12" y="5" font-size="12" font-weight="bold" fill="#38bdf8">GPIO 36 (VP)</text>
+      <text x="100" y="5" font-size="10" fill="#bae6fd">[BAT_ADC]</text>
+    </g>
+    <!-- Pin 4: GPIO 39 -->
+    <g transform="translate(0, 180)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="12" y="5" font-size="11" fill="#94a3b8">GPIO 39 (VN)</text>
+    </g>
+    <!-- Pin 5: GPIO 34 -->
+    <g transform="translate(0, 220)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="12" y="5" font-size="11" fill="#94a3b8">GPIO 34</text>
+    </g>
+    <!-- Pin 6: GPIO 35 -->
+    <g transform="translate(0, 260)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="12" y="5" font-size="11" fill="#94a3b8">GPIO 35</text>
+    </g>
+    <!-- Pin 7: GPIO 32 -->
+    <g transform="translate(0, 300)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="12" y="5" font-size="11" fill="#94a3b8">GPIO 32</text>
+    </g>
+    <!-- Pin 8: GPIO 33 -->
+    <g transform="translate(0, 340)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="12" y="5" font-size="11" fill="#94a3b8">GPIO 33</text>
+    </g>
+    <!-- Pin 9: GPIO 25 (I2S LRC / WS) -->
+    <g transform="translate(0, 380)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#ec4899"/>
+      <text x="12" y="5" font-size="12" font-weight="bold" fill="#f472b6">GPIO 25</text>
+      <text x="75" y="5" font-size="10" fill="#fbcfe8">[I2S_LRC / WS]</text>
+    </g>
+    <!-- Pin 10: GPIO 26 (I2S BCLK) -->
+    <g transform="translate(0, 420)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#ec4899"/>
+      <text x="12" y="5" font-size="12" font-weight="bold" fill="#f472b6">GPIO 26</text>
+      <text x="75" y="5" font-size="10" fill="#fbcfe8">[I2S_BCLK]</text>
+    </g>
+    <!-- Pin 11: GPIO 27 (I2S DIN) -->
+    <g transform="translate(0, 460)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#ec4899"/>
+      <text x="12" y="5" font-size="12" font-weight="bold" fill="#f472b6">GPIO 27</text>
+      <text x="75" y="5" font-size="10" fill="#fbcfe8">[I2S_DIN]</text>
+    </g>
+    <!-- Pin 12: GPIO 14 -->
+    <g transform="translate(0, 510)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="12" y="5" font-size="11" fill="#94a3b8">GPIO 14</text>
+    </g>
+    <!-- Pin 13: GPIO 12 -->
+    <g transform="translate(0, 560)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="12" y="5" font-size="11" fill="#94a3b8">GPIO 12</text>
+    </g>
+    <!-- Pin 14: GND -->
+    <g transform="translate(0, 620)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#cbd5e1"/>
+      <text x="12" y="5" font-size="12" font-weight="bold" fill="#f1f5f9">GND</text>
+      <text x="50" y="5" font-size="9" fill="#94a3b8">(Ground)</text>
+    </g>
+    <!-- Pin 15: VIN (5V Input) -->
+    <g transform="translate(0, 680)">
+      <rect x="-10" y="-8" width="10" height="16" fill="#e11d48"/>
+      <text x="12" y="5" font-size="13" font-weight="bold" fill="#fb7185">VIN (5V)</text>
+      <text x="75" y="5" font-size="10" fill="#fda4af">[5V Boost In]</text>
+    </g>
+
+
+    <!-- RIGHT PINS (15 Pins, X=360) -->
+    <!-- Pin 16: GPIO 23 (TP4056 CHRG DETECT) -->
+    <g transform="translate(360, 60)">
+      <rect x="0" y="-8" width="10" height="16" fill="#38bdf8"/>
+      <text x="-12" y="5" font-size="12" font-weight="bold" fill="#38bdf8" text-anchor="end">GPIO 23</text>
+      <text x="-75" y="5" font-size="10" fill="#bae6fd" text-anchor="end">[CHRG_STAT]</text>
+    </g>
+    <!-- Pin 17: GPIO 22 (I2C SCL) -->
+    <g transform="translate(360, 120)">
+      <rect x="0" y="-8" width="10" height="16" fill="#2dd4bf"/>
+      <text x="-12" y="5" font-size="12" font-weight="bold" fill="#2dd4bf" text-anchor="end">GPIO 22</text>
+      <text x="-75" y="5" font-size="10" fill="#99f6e4" text-anchor="end">[I2C_SCL]</text>
+    </g>
+    <!-- Pin 18: GPIO 1 (TX0) -->
+    <g transform="translate(360, 170)">
+      <rect x="0" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="-12" y="5" font-size="11" fill="#94a3b8" text-anchor="end">TX0 / GPIO 1</text>
+    </g>
+    <!-- Pin 19: GPIO 3 (RX0) -->
+    <g transform="translate(360, 210)">
+      <rect x="0" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="-12" y="5" font-size="11" fill="#94a3b8" text-anchor="end">RX0 / GPIO 3</text>
+    </g>
+    <!-- Pin 20: GPIO 21 (I2C SDA) -->
+    <g transform="translate(360, 260)">
+      <rect x="0" y="-8" width="10" height="16" fill="#2dd4bf"/>
+      <text x="-12" y="5" font-size="12" font-weight="bold" fill="#2dd4bf" text-anchor="end">GPIO 21</text>
+      <text x="-75" y="5" font-size="10" fill="#99f6e4" text-anchor="end">[I2C_SDA]</text>
+    </g>
+    <!-- Pin 21: GPIO 19 (TTP223 TOUCH) -->
+    <g transform="translate(360, 320)">
+      <rect x="0" y="-8" width="10" height="16" fill="#a78bfa"/>
+      <text x="-12" y="5" font-size="12" font-weight="bold" fill="#c4b5fd" text-anchor="end">GPIO 19</text>
+      <text x="-75" y="5" font-size="10" fill="#ddd6fe" text-anchor="end">[TOUCH_IN]</text>
+    </g>
+    <!-- Pin 22: GPIO 18 (IR WEAR SENSOR) -->
+    <g transform="translate(360, 380)">
+      <rect x="0" y="-8" width="10" height="16" fill="#a78bfa"/>
+      <text x="-12" y="5" font-size="12" font-weight="bold" fill="#c4b5fd" text-anchor="end">GPIO 18</text>
+      <text x="-75" y="5" font-size="10" fill="#ddd6fe" text-anchor="end">[IR_WEAR]</text>
+    </g>
+    <!-- Pin 23: GPIO 5 -->
+    <g transform="translate(360, 430)">
+      <rect x="0" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="-12" y="5" font-size="11" fill="#94a3b8" text-anchor="end">GPIO 5</text>
+    </g>
+    <!-- Pin 24: GPIO 17 (GPS TX2 -> GPS RX) -->
+    <g transform="translate(360, 490)">
+      <rect x="0" y="-8" width="10" height="16" fill="#facc15"/>
+      <text x="-12" y="5" font-size="12" font-weight="bold" fill="#fde047" text-anchor="end">GPIO 17 (TX2)</text>
+      <text x="-105" y="5" font-size="10" fill="#fef08a" text-anchor="end">[GPS_TX2]</text>
+    </g>
+    <!-- Pin 25: GPIO 16 (GPS RX2 <- GPS TX) -->
+    <g transform="translate(360, 540)">
+      <rect x="0" y="-8" width="10" height="16" fill="#facc15"/>
+      <text x="-12" y="5" font-size="12" font-weight="bold" fill="#fde047" text-anchor="end">GPIO 16 (RX2)</text>
+      <text x="-105" y="5" font-size="10" fill="#fef08a" text-anchor="end">[GPS_RX2]</text>
+    </g>
+    <!-- Pin 26: GPIO 4 (SOS / CANCEL BUTTON) -->
+    <g transform="translate(360, 600)">
+      <rect x="0" y="-8" width="10" height="16" fill="#4ade80"/>
+      <text x="-12" y="5" font-size="12" font-weight="bold" fill="#86efac" text-anchor="end">GPIO 4</text>
+      <text x="-70" y="5" font-size="10" fill="#bbf7d0" text-anchor="end">[SOS_BTN]</text>
+    </g>
+    <!-- Pin 27: GPIO 0 -->
+    <g transform="translate(360, 645)">
+      <rect x="0" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="-12" y="5" font-size="11" fill="#94a3b8" text-anchor="end">GPIO 0 (Boot)</text>
+    </g>
+    <!-- Pin 28: GPIO 2 -->
+    <g transform="translate(360, 680)">
+      <rect x="0" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="-12" y="5" font-size="11" fill="#94a3b8" text-anchor="end">GPIO 2 (LED)</text>
+    </g>
+    <!-- Pin 29: GPIO 15 -->
+    <g transform="translate(360, 715)">
+      <rect x="0" y="-8" width="10" height="16" fill="#64748b"/>
+      <text x="-12" y="5" font-size="11" fill="#94a3b8" text-anchor="end">GPIO 15</text>
+    </g>
+  </g>
+
+
+  <!-- ========================================================================= -->
+  <!-- POWER SUBSYSTEM (TOP LEFT) -->
+  <!-- ========================================================================= -->
+  <!-- 1. USB 5V Input Port: X=60, Y=70, W=140, H=90 -->
+  <g transform="translate(60, 70)">
+    <rect x="0" y="0" width="140" height="90" rx="6" fill="#f8fafc" stroke="#334155" stroke-width="2" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="140" height="26" rx="6" fill="#334155"/>
+    <text x="70" y="18" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">USB TYPE-C (5V)</text>
+    
+    <text x="15" y="50" font-size="11" font-weight="bold" fill="#e11d48">VBUS (+5V)</text>
+    <text x="15" y="75" font-size="11" font-weight="bold" fill="#0f172a">GND</text>
+    
+    <!-- Terminals on right edge -->
+    <circle cx="140" cy="46" r="4" fill="#e11d48"/>
+    <circle cx="140" cy="71" r="4" fill="#0f172a"/>
+  </g>
+
+  <!-- 2. TP4056 Charger Module: X=270, Y=60, W=220, H=160 -->
+  <g transform="translate(270, 60)">
+    <rect x="0" y="0" width="220" height="160" rx="6" fill="#f8fafc" stroke="#2563eb" stroke-width="2" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="220" height="28" rx="6" fill="#2563eb"/>
+    <text x="110" y="19" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">TP4056 CHARGER + DW01</text>
+    
+    <!-- Left Inputs -->
+    <text x="12" y="56" font-size="11" font-weight="bold" fill="#e11d48">IN+ (5V)</text>
+    <text x="12" y="81" font-size="11" font-weight="bold" fill="#0f172a">IN- (GND)</text>
+    <circle cx="0" cy="52" r="4" fill="#e11d48"/>
+    <circle cx="0" cy="77" r="4" fill="#0f172a"/>
+
+    <!-- Right Outputs -->
+    <text x="208" y="56" font-size="11" font-weight="bold" fill="#0284c7" text-anchor="end">BAT+ (3.7V)</text>
+    <text x="208" y="81" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="end">BAT- (GND)</text>
+    <text x="208" y="115" font-size="11" font-weight="bold" fill="#0284c7" text-anchor="end">OUT+ (VBAT)</text>
+    <text x="208" y="145" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="end">CHRG ──► GPIO 23</text>
+    <circle cx="220" cy="52" r="4" fill="#0284c7"/>
+    <circle cx="220" cy="77" r="4" fill="#0f172a"/>
+    <circle cx="220" cy="111" r="4" fill="#0284c7"/>
+    <circle cx="220" cy="141" r="4" fill="#38bdf8"/>
+  </g>
+
+  <!-- Wires: USB to TP4056 -->
+  <line x1="200" y1="116" x2="270" y2="112" stroke="#e11d48" stroke-width="2.5"/>
+  <line x1="200" y1="141" x2="270" y2="137" stroke="#0f172a" stroke-width="2.5"/>
+
+  <!-- 3. 18650 Li-Ion Battery: X=560, Y=60, W=130, H=100 -->
+  <g transform="translate(560, 60)">
+    <rect x="0" y="0" width="130" height="100" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="130" height="24" rx="8" fill="#0284c7"/>
+    <text x="65" y="16" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">18650 Li-Ion CELL</text>
+    
+    <text x="15" y="52" font-size="12" font-weight="bold" fill="#e11d48">BATT (+)</text>
+    <text x="15" y="82" font-size="12" font-weight="bold" fill="#0f172a">BATT (-)</text>
+    <text x="115" y="65" font-size="10" font-weight="bold" fill="#0369a1" text-anchor="end">3.7V / 2600mAh</text>
+    <circle cx="0" cy="48" r="4" fill="#e11d48"/>
+    <circle cx="0" cy="78" r="4" fill="#0f172a"/>
+  </g>
+
+  <!-- Wires: TP4056 to 18650 Battery -->
+  <line x1="490" y1="112" x2="560" y2="108" stroke="#0284c7" stroke-width="2.5"/>
+  <line x1="490" y1="137" x2="560" y2="138" stroke="#0f172a" stroke-width="2.5"/>
+
+  <!-- Wire: TP4056 CHRG Status Pin to ESP32 GPIO 23 -->
+  <!-- Path routes clearly along Y=201 across to X=1140, down to GPIO 23 (Y=280) -->
+  <path d="M 490 201 L 1140 201 L 1140 280 L 1120 280" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+  <text x="620" y="195" font-size="10" font-weight="bold" fill="#0284c7">USB Charging Active Detect (CHRG ➔ GPIO 23)</text>
+  <circle cx="1120" cy="280" r="4" fill="#38bdf8"/>
+
+
+  <!-- 4. MT3608 5.0V Boost Converter: X=270, Y=290, W=220, H=140 -->
+  <g transform="translate(270, 290)">
+    <rect x="0" y="0" width="220" height="140" rx="6" fill="#fdf2f8" stroke="#e11d48" stroke-width="2" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="220" height="28" rx="6" fill="#e11d48"/>
+    <text x="110" y="19" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">MT3608 5V STEP-UP BOOST</text>
+    
+    <!-- Left Inputs from Battery OUT+ -->
+    <text x="12" y="58" font-size="11" font-weight="bold" fill="#0284c7">VIN+ (3.7V VBAT)</text>
+    <text x="12" y="98" font-size="11" font-weight="bold" fill="#0f172a">VIN- (GND)</text>
+    <circle cx="0" cy="54" r="4" fill="#0284c7"/>
+    <circle cx="0" cy="94" r="4" fill="#0f172a"/>
+
+    <!-- Right Outputs (5.0V Regulated Rail) -->
+    <text x="208" y="58" font-size="12" font-weight="bold" fill="#e11d48" text-anchor="end">VOUT+ (5.0V Rail)</text>
+    <text x="208" y="98" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="end">VOUT- (GND)</text>
+    <text x="110" y="128" font-size="9" fill="#9f1239" text-anchor="middle">Powers ESP32 VIN &amp; MAX98357A Amp</text>
+    <circle cx="220" cy="54" r="4" fill="#e11d48"/>
+    <circle cx="220" cy="94" r="4" fill="#0f172a"/>
+  </g>
+
+  <!-- Wire: TP4056 OUT+ (VBAT) to MT3608 VIN+ and Voltage Divider -->
+  <!-- TP4056 OUT+ is at (490, 171) -->
+  <path d="M 490 171 L 525 171 L 525 344 L 270 344" fill="none" stroke="#0284c7" stroke-width="3"/>
+  <circle cx="525" cy="171" r="3.5" fill="#0284c7"/>
+  <circle cx="525" cy="344" r="4" fill="#0284c7"/>
+
+
+  <!-- 5. Resistor Voltage Divider for Battery Monitoring (GPIO 36): X=560, Y=270, W=140, H=190 -->
+  <g transform="translate(560, 270)">
+    <rect x="0" y="0" width="140" height="190" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="140" height="26" rx="6" fill="#16a34a"/>
+    <text x="70" y="18" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">BATTERY ADC DIVIDER</text>
+    
+    <!-- Top terminal from VBAT -->
+    <text x="70" y="42" font-size="9" font-weight="bold" fill="#0284c7" text-anchor="middle">VBAT (0 - 4.2V)</text>
+    <circle cx="70" cy="46" r="3.5" fill="#0284c7"/>
+    <line x1="70" y1="46" x2="70" y2="58" stroke="#0284c7" stroke-width="2"/>
+
+    <!-- R1 Resistor Symbol (100kΩ) -->
+    <rect x="55" y="58" width="30" height="32" fill="#ffffff" stroke="#166534" stroke-width="1.8"/>
+    <text x="70" y="78" font-size="10" font-weight="bold" fill="#166534" text-anchor="middle">100kΩ</text>
+    <text x="92" y="78" font-size="8" fill="#475569">R1</text>
+
+    <!-- Midpoint Node -->
+    <line x1="70" y1="90" x2="70" y2="114" stroke="#38bdf8" stroke-width="2.5"/>
+    <circle cx="70" cy="102" r="4" fill="#38bdf8"/>
+    <text x="130" y="100" font-size="9" font-weight="bold" fill="#0284c7" text-anchor="end">V_ADC</text>
+    <circle cx="140" cy="102" r="4" fill="#38bdf8"/>
+
+    <!-- R2 Resistor Symbol (100kΩ) -->
+    <rect x="55" y="114" width="30" height="32" fill="#ffffff" stroke="#166534" stroke-width="1.8"/>
+    <text x="70" y="134" font-size="10" font-weight="bold" fill="#166534" text-anchor="middle">100kΩ</text>
+    <text x="92" y="134" font-size="8" fill="#475569">R2</text>
+
+    <!-- GND Symbol -->
+    <line x1="70" y1="146" x2="70" y2="160" stroke="#0f172a" stroke-width="2"/>
+    <line x1="50" y1="160" x2="90" y2="160" stroke="#0f172a" stroke-width="2"/>
+    <line x1="56" y1="165" x2="84" y2="165" stroke="#0f172a" stroke-width="1.5"/>
+    <line x1="62" y1="170" x2="78" y2="170" stroke="#0f172a" stroke-width="1"/>
+    <text x="70" y="184" font-size="8" fill="#475569" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- Wire from VBAT bus (X=525, Y=316) to Divider top (X=630, Y=316) -->
+  <path d="M 525 316 L 630 316" fill="none" stroke="#0284c7" stroke-width="2.5"/>
+  <circle cx="525" cy="316" r="3.5" fill="#0284c7"/>
+
+  <!-- Wire from Voltage Divider Midpoint (700, 372) to ESP32 Pin 3 GPIO 36 (760, 360) -->
+  <path d="M 700 372 L 730 372 L 730 360 L 760 360" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+  <circle cx="760" cy="360" r="4" fill="#38bdf8"/>
+
+
+  <!-- 5.0V Boost Rail Wiring from MT3608 VOUT+ (X=490, Y=344) -->
+  <!-- Routes down to MAX98357A VIN and ESP32 VIN (Pin 15 at Y=900) -->
+  <path d="M 490 344 L 515 344 L 515 900 L 760 900" fill="none" stroke="#e11d48" stroke-width="3.5"/>
+  <circle cx="490" cy="344" r="4" fill="#e11d48"/>
+  <circle cx="760" cy="900" r="4" fill="#e11d48"/>
+  <text x="525" y="885" font-size="11" font-weight="bold" fill="#e11d48">+5.0V Boost Rail ➔ ESP32 VIN</text>
+
+
+  <!-- ========================================================================= -->
+  <!-- AUDIO SUBSYSTEM (BOTTOM LEFT) -->
+  <!-- ========================================================================= -->
+  <!-- MAX98357A I2S Class-D Amplifier: X=270, Y=530, W=220, H=230 -->
+  <g transform="translate(270, 530)">
+    <rect x="0" y="0" width="220" height="230" rx="6" fill="#fdf2f8" stroke="#db2777" stroke-width="2" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="220" height="28" rx="6" fill="#db2777"/>
+    <text x="110" y="19" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">MAX98357A I2S 3.2W AMP</text>
+    
+    <!-- Left Terminals to Speaker -->
+    <text x="15" y="60" font-size="11" font-weight="bold" fill="#db2777">SPK (+)</text>
+    <text x="15" y="90" font-size="11" font-weight="bold" fill="#db2777">SPK (-)</text>
+    <circle cx="0" cy="56" r="4" fill="#db2777"/>
+    <circle cx="0" cy="86" r="4" fill="#db2777"/>
+
+    <!-- Config Pins -->
+    <text x="15" y="130" font-size="10" fill="#475569">GAIN ──► GND (+12dB)</text>
+    <text x="15" y="155" font-size="10" fill="#475569">SD_MODE ──► Open (Mono)</text>
+    <text x="15" y="180" font-size="10" font-weight="bold" fill="#0f172a">GND ──► Common GND</text>
+
+    <!-- Right Input Terminals -->
+    <text x="208" y="60" font-size="11" font-weight="bold" fill="#e11d48" text-anchor="end">VIN (5V)</text>
+    <text x="208" y="95" font-size="11" font-weight="bold" fill="#db2777" text-anchor="end">LRC (GPIO 25)</text>
+    <text x="208" y="135" font-size="11" font-weight="bold" fill="#db2777" text-anchor="end">BCLK (GPIO 26)</text>
+    <text x="208" y="175" font-size="11" font-weight="bold" fill="#db2777" text-anchor="end">DIN (GPIO 27)</text>
+    
+    <circle cx="220" cy="56" r="4" fill="#e11d48"/>
+    <circle cx="220" cy="91" r="4" fill="#db2777"/>
+    <circle cx="220" cy="131" r="4" fill="#db2777"/>
+    <circle cx="220" cy="171" r="4" fill="#db2777"/>
+  </g>
+
+  <!-- Wire from 5.0V Boost Rail (X=515) to MAX98357A VIN (X=490, Y=586) -->
+  <path d="M 515 586 L 490 586" fill="none" stroke="#e11d48" stroke-width="3"/>
+  <circle cx="515" cy="586" r="4" fill="#e11d48"/>
+
+  <!-- I2S Audio Bus Wires from ESP32 to MAX98357A -->
+  <!-- GPIO 25 (LRC / WS, Y=600) to MAX98357A LRC (Y=621) -->
+  <path d="M 760 600 L 530 600 L 530 621 L 490 621" fill="none" stroke="#db2777" stroke-width="2.5"/>
+  <circle cx="760" cy="600" r="4" fill="#db2777"/>
+  <text x="545" y="594" font-size="10" font-weight="bold" fill="#db2777">LRC / Word Clock</text>
+
+  <!-- GPIO 26 (BCLK, Y=640) to MAX98357A BCLK (Y=661) -->
+  <path d="M 760 640 L 545 640 L 545 661 L 490 661" fill="none" stroke="#db2777" stroke-width="2.5"/>
+  <circle cx="760" cy="640" r="4" fill="#db2777"/>
+  <text x="560" y="634" font-size="10" font-weight="bold" fill="#db2777">Bit Clock (BCLK)</text>
+
+  <!-- GPIO 27 (DIN, Y=680) to MAX98357A DIN (Y=701) -->
+  <path d="M 760 680 L 560 680 L 560 701 L 490 701" fill="none" stroke="#db2777" stroke-width="2.5"/>
+  <circle cx="760" cy="680" r="4" fill="#db2777"/>
+  <text x="575" y="674" font-size="10" font-weight="bold" fill="#db2777">Audio PCM Data (DIN)</text>
+
+  <!-- 3W Helmet Speaker: X=60, Y=560, W=140, H=120 -->
+  <g transform="translate(60, 560)">
+    <rect x="0" y="0" width="140" height="120" rx="6" fill="#f8fafc" stroke="#334155" stroke-width="2" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="140" height="24" rx="6" fill="#334155"/>
+    <text x="70" y="16" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">3W HELMET SPEAKER</text>
+    
+    <!-- Speaker Schematic Symbol -->
+    <rect x="30" y="45" width="20" height="40" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+    <polygon points="50,45 75,30 75,100 50,85" fill="#cbd5e1" stroke="#1e293b" stroke-width="1.5"/>
+    <!-- Sound waves -->
+    <path d="M 85 50 A 15 15 0 0 1 85 80" fill="none" stroke="#db2777" stroke-width="2"/>
+    <path d="M 93 42 A 25 25 0 0 1 93 88" fill="none" stroke="#db2777" stroke-width="2"/>
+    
+    <text x="70" y="112" font-size="9" font-weight="bold" fill="#334155" text-anchor="middle">4Ω / 8Ω 3W Transducer</text>
+    
+    <circle cx="140" cy="50" r="4" fill="#db2777"/>
+    <circle cx="140" cy="80" r="4" fill="#db2777"/>
+  </g>
+
+  <!-- Speaker Wires -->
+  <line x1="200" y1="610" x2="270" y2="586" stroke="#db2777" stroke-width="2.5"/>
+  <line x1="200" y1="640" x2="270" y2="616" stroke="#db2777" stroke-width="2.5"/>
+
+
+  <!-- ========================================================================= -->
+  <!-- RIGHT SIDE SUBSYSTEMS (MPU-6050, GPS, WEAR SENSORS, SOS BUTTON) -->
+  <!-- ========================================================================= -->
+
+  <!-- 1. MPU-6050 6-Axis IMU (I2C): X=1420, Y=220, W=250, H=160 -->
+  <g transform="translate(1420, 220)">
+    <rect x="0" y="0" width="250" height="160" rx="6" fill="#f0fdfa" stroke="#0d9488" stroke-width="2" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="250" height="28" rx="6" fill="#0d9488"/>
+    <text x="125" y="19" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">MPU-6050 6-AXIS IMU (CRASH/TILT)</text>
+    
+    <!-- Pins on Left edge -->
+    <text x="15" y="55" font-size="11" font-weight="bold" fill="#f97316">VCC (3.3V LDO Rail)</text>
+    <text x="15" y="80" font-size="11" font-weight="bold" fill="#0f172a">GND</text>
+    <text x="15" y="108" font-size="12" font-weight="bold" fill="#0d9488">SCL (GPIO 22)</text>
+    <text x="15" y="138" font-size="12" font-weight="bold" fill="#0d9488">SDA (GPIO 21)</text>
+    <text x="235" y="145" font-size="9" fill="#64748b" text-anchor="end">AD0 ➔ GND (0x68)</text>
+
+    <circle cx="0" cy="51" r="4" fill="#f97316"/>
+    <circle cx="0" cy="76" r="4" fill="#0f172a"/>
+    <circle cx="0" cy="104" r="4" fill="#0d9488"/>
+    <circle cx="0" cy="134" r="4" fill="#0d9488"/>
+  </g>
+
+  <!-- Wire: SCL (GPIO 22) -> X=1260 -> Y=340 -> ESP32 Pin 17 -->
+  <path d="M 1420 324 L 1260 324 L 1260 340 L 1120 340" fill="none" stroke="#0d9488" stroke-width="2.5"/>
+  <circle cx="1120" cy="340" r="4" fill="#0d9488"/>
+  <text x="1275" y="320" font-size="10" font-weight="bold" fill="#0d9488">I2C SCL Clock</text>
+
+  <!-- Wire: SDA (GPIO 21) -> X=1290 -> Y=480 -> ESP32 Pin 20 -->
+  <path d="M 1420 354 L 1290 354 L 1290 480 L 1120 480" fill="none" stroke="#0d9488" stroke-width="2.5"/>
+  <circle cx="1120" cy="480" r="4" fill="#0d9488"/>
+  <text x="1305" y="470" font-size="10" font-weight="bold" fill="#0d9488">I2C SDA Data</text>
+
+
+  <!-- 2. NEO-M8N GPS Module (UART2): X=1420, Y=420, W=250, H=160 -->
+  <g transform="translate(1420, 420)">
+    <rect x="0" y="0" width="250" height="160" rx="6" fill="#fefce8" stroke="#ca8a04" stroke-width="2" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="250" height="28" rx="6" fill="#ca8a04"/>
+    <text x="125" y="19" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">NEO-M8N / 6M GPS RECEIVER</text>
+    
+    <text x="15" y="55" font-size="11" font-weight="bold" fill="#f97316">VCC (3.3V / 5V)</text>
+    <text x="15" y="80" font-size="11" font-weight="bold" fill="#0f172a">GND</text>
+    <text x="15" y="112" font-size="12" font-weight="bold" fill="#ca8a04">TXD (Data Stream Out)</text>
+    <text x="15" y="142" font-size="12" font-weight="bold" fill="#ca8a04">RXD (Command In)</text>
+
+    <circle cx="0" cy="51" r="4" fill="#f97316"/>
+    <circle cx="0" cy="76" r="4" fill="#0f172a"/>
+    <circle cx="0" cy="108" r="4" fill="#ca8a04"/>
+    <circle cx="0" cy="138" r="4" fill="#ca8a04"/>
+  </g>
+
+  <!-- Wire: GPS TXD -> ESP32 Pin 25 GPIO 16 (RX2, Y=760) -->
+  <path d="M 1420 528 L 1320 528 L 1320 760 L 1120 760" fill="none" stroke="#ca8a04" stroke-width="2.5"/>
+  <circle cx="1120" cy="760" r="4" fill="#ca8a04"/>
+  <text x="1330" y="522" font-size="10" font-weight="bold" fill="#ca8a04">NMEA Serial Out (TX ➔ GPIO 16)</text>
+
+  <!-- Wire: GPS RXD <- ESP32 Pin 24 GPIO 17 (TX2, Y=710) -->
+  <path d="M 1420 558 L 1230 558 L 1230 710 L 1120 710" fill="none" stroke="#ca8a04" stroke-width="2.5"/>
+  <circle cx="1120" cy="710" r="4" fill="#ca8a04"/>
+  <text x="1240" y="700" font-size="10" font-weight="bold" fill="#ca8a04">GPS Config (RX ◄ GPIO 17)</text>
+
+
+  <!-- 3. IR Optical Wear Sensor: X=1420, Y=610, W=250, H=90 -->
+  <g transform="translate(1420, 610)">
+    <rect x="0" y="0" width="250" height="90" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.8" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="250" height="24" rx="6" fill="#7c3aed"/>
+    <text x="125" y="16" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">IR OPTICAL WEAR SENSOR</text>
+    
+    <text x="15" y="44" font-size="10" fill="#f97316">VCC (3.3V) &amp; GND</text>
+    <text x="15" y="68" font-size="12" font-weight="bold" fill="#7c3aed">OUT ──► GPIO 18</text>
+    <text x="235" y="78" font-size="9" fill="#64748b" text-anchor="end">LOW = Head Worn</text>
+
+    <circle cx="0" cy="64" r="4" fill="#7c3aed"/>
+  </g>
+
+  <!-- Wire: IR OUT -> ESP32 Pin 22 GPIO 18 (Y=600) -->
+  <path d="M 1420 674 L 1200 674 L 1200 600 L 1120 600" fill="none" stroke="#7c3aed" stroke-width="2.5"/>
+  <circle cx="1120" cy="600" r="4" fill="#7c3aed"/>
+  <text x="1210" y="594" font-size="10" font-weight="bold" fill="#7c3aed">IR Wear (OUT ➔ GPIO 18)</text>
+
+
+  <!-- 4. TTP223 Capacitive Touch Sensor: X=1420, Y=730, W=250, H=90 -->
+  <g transform="translate(1420, 730)">
+    <rect x="0" y="0" width="250" height="90" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.8" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="250" height="24" rx="6" fill="#7c3aed"/>
+    <text x="125" y="16" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">TTP223 CAPACITIVE TOUCH SENSOR</text>
+    
+    <text x="15" y="44" font-size="10" fill="#f97316">VCC (3.3V) &amp; GND</text>
+    <text x="15" y="68" font-size="12" font-weight="bold" fill="#7c3aed">OUT ──► GPIO 19</text>
+    <text x="235" y="78" font-size="9" fill="#64748b" text-anchor="end">HIGH = Strap Touched</text>
+
+    <circle cx="0" cy="64" r="4" fill="#7c3aed"/>
+  </g>
+
+  <!-- Wire: TTP223 OUT -> ESP32 Pin 21 GPIO 19 (Y=540) -->
+  <path d="M 1420 794 L 1170 794 L 1170 540 L 1120 540" fill="none" stroke="#7c3aed" stroke-width="2.5"/>
+  <circle cx="1120" cy="540" r="4" fill="#7c3aed"/>
+  <text x="1180" y="534" font-size="10" font-weight="bold" fill="#7c3aed">Touch (OUT ➔ GPIO 19)</text>
+
+
+  <!-- 5. SOS / Accident Cancel Push Button: X=1420, Y=850, W=250, H=100 (WELL ABOVE TITLE BLOCK AT 1040) -->
+  <g transform="translate(1420, 850)">
+    <rect x="0" y="0" width="250" height="100" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8" filter="url(#box-shadow)"/>
+    <rect x="0" y="0" width="250" height="24" rx="6" fill="#16a34a"/>
+    <text x="125" y="16" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">SOS / CANCEL PUSH BUTTON</text>
+    
+    <!-- Schematic Switch Symbol -->
+    <line x1="20" y1="58" x2="45" y2="58" stroke="#0f172a" stroke-width="2"/>
+    <line x1="45" y1="58" x2="65" y2="42" stroke="#16a34a" stroke-width="2.5"/>
+    <line x1="68" y1="58" x2="95" y2="58" stroke="#0f172a" stroke-width="2"/>
+    <circle cx="45" cy="58" r="2.5" fill="#0f172a"/>
+    <circle cx="68" cy="58" r="2.5" fill="#0f172a"/>
+
+    <text x="110" y="55" font-size="12" font-weight="bold" fill="#16a34a">GPIO 4</text>
+    <text x="110" y="70" font-size="9" fill="#15803d">(Internal Pull-Up)</text>
+    <text x="15" y="90" font-size="9" fill="#475569">Terminal 2 ──► Common GND</text>
+
+    <circle cx="0" cy="58" r="4" fill="#16a34a"/>
+  </g>
+
+  <!-- Wire: Push Button SIG -> ESP32 Pin 26 GPIO 4 (Y=820) -->
+  <path d="M 1420 908 L 1150 908 L 1150 820 L 1120 820" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+  <circle cx="1120" cy="820" r="4" fill="#16a34a"/>
+  <text x="1160" y="814" font-size="10" font-weight="bold" fill="#16a34a">Cancel / SOS (Button ➔ GPIO 4)</text>
+
+</svg>

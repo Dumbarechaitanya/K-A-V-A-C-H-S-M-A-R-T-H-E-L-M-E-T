@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Kavach Smart Helmet</string>
+    <string name="gps_engine_label">NEO-M8N GPS</string>
+</resources>

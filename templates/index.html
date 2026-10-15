@@ -1,0 +1,591 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kavach Smart Helmet — IoE Navigation, Speed & Accident Detection Dashboard</title>
+  <meta name="description" content="IoE-Based Smart Helmet with Navigation, Speed Monitoring, Helmet Wear Detection, MPU6050 Accident Sensing and Voice Assistance.">
+  
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Leaflet CSS for Map (100% Free Open-Source Map - No API Key Required) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  
+  <!-- Django Static Stylesheet -->
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="dark-theme">
+  <!-- Emergency Active Banner (Hidden by default) -->
+  <div id="emergency-banner" class="emergency-banner hidden">
+    <div class="emergency-banner-content">
+      <div class="emergency-icon-pulse">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div class="emergency-details">
+        <h2 id="emergency-title">CRITICAL ALERT: EMERGENCY SOS TRIGGERED</h2>
+        <p id="emergency-subtitle">High priority distress signal dispatched from Smart Helmet with live coordinates.</p>
+        <div class="emergency-quick-info">
+          <span><i class="fa-solid fa-location-dot"></i> <strong id="emergency-coords">19.2184° N, 73.0867° E</strong></span>
+          <span><i class="fa-solid fa-clock"></i> <strong id="emergency-time">Just now</strong></span>
+          <span><i class="fa-solid fa-gauge-high"></i> Speed: <strong id="emergency-speed">0 km/h</strong></span>
+        </div>
+      </div>
+      <div class="emergency-actions">
+        <a id="emergency-maps-btn" href="https://maps.google.com/?q=19.2184,73.0867" target="_blank" class="btn btn-emergency-maps">
+          <i class="fa-solid fa-map-location-dot"></i> Open in Google Maps
+        </a>
+        <button id="resolve-emergency-btn" class="btn btn-emergency-resolve">
+          <i class="fa-solid fa-circle-check"></i> Resolve Alert
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accident Countdown Modal (15-Second False Alarm Cancellation Window) -->
+  <div id="accident-modal" class="modal-overlay hidden">
+    <div class="modal-card modal-accident">
+      <div class="modal-header">
+        <div class="modal-badge danger">
+          <i class="fa-solid fa-burst"></i> MPU6050 ACCIDENT DETECTED
+        </div>
+        <span class="modal-close" id="close-modal-btn">&times;</span>
+      </div>
+      <div class="modal-body text-center">
+        <div class="countdown-circle-container">
+          <svg class="countdown-svg" viewBox="0 0 120 120">
+            <circle class="countdown-bg" cx="60" cy="60" r="52"></circle>
+            <circle class="countdown-progress" id="countdown-progress" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <div class="countdown-number" id="countdown-seconds">15</div>
+        </div>
+        <h3 class="countdown-heading">Accident / High Tilt Detected!</h3>
+        <p class="countdown-voice-quote">
+          <i class="fa-solid fa-volume-high"></i> <em>"Accident detected. Press the cancel button if you are safe."</em>
+        </p>
+        <p class="countdown-instruction">
+          If conscious and safe, press the <strong>Helmet Push Button (GPIO 19)</strong> or click below to cancel before emergency dispatch.
+        </p>
+        
+        <div class="modal-impact-stats">
+          <div class="stat-pill">
+            <span class="label">Total G-Force</span>
+            <span class="value" id="modal-impact-force">4.20 g</span>
+          </div>
+          <div class="stat-pill">
+            <span class="label">Tilt Angle</span>
+            <span class="value" id="modal-impact-tilt">72.5°</span>
+          </div>
+          <div class="stat-pill">
+            <span class="label">GPS Speed</span>
+            <span class="value" id="modal-impact-speed">48.2 km/h</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-accident-btn" class="btn btn-success btn-lg">
+          <i class="fa-solid fa-shield-check"></i> I Am Safe (Cancel Emergency)
+        </button>
+        <button id="instant-alert-btn" class="btn btn-danger">
+          <i class="fa-solid fa-tower-broadcast"></i> Dispatch Help Immediately
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="app-layout">
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand-logo">
+          <div class="logo-shield">
+            <i class="fa-solid fa-helmet-safety"></i>
+          </div>
+          <div class="brand-text">
+            <h1>KAVACH <span>SMART HELMET</span></h1>
+            <p class="subtitle">Django IoT Cloud • Neon PostgreSQL • Rider Protection</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="status-chip offline" id="connection-status-chip">
+          <span class="status-dot"></span>
+          <span class="status-label" id="connection-label">ESP32 Disconnected</span>
+        </div>
+        <div class="status-chip wear-chip danger" id="header-wear-chip">
+          <i class="fa-solid fa-user-shield"></i>
+          <span id="header-wear-text">Helmet Standby</span>
+        </div>
+        <div class="status-chip overspeed-chip hidden" id="header-overspeed-chip">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>OVERSPEED (>60km/h)</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Required Battery Gauge Widget -->
+        <div class="battery-widget" id="header-battery" title="Required Li-Ion Battery Telemetry (TP4056 + 18650)">
+          <div class="battery-icon-container">
+            <div class="battery-shell">
+              <div class="battery-level-bar" id="battery-fill" style="width: 0%;"></div>
+            </div>
+            <i class="fa-solid fa-bolt charging-icon hidden" id="battery-charging-icon"></i>
+          </div>
+          <span class="battery-text" id="battery-pct-text">0%</span>
+          <span class="battery-voltage" id="battery-voltage-text">(0.00V)</span>
+        </div>
+
+        <!-- Audio speech toggle -->
+        <button id="sound-toggle-btn" class="btn-icon" title="Toggle Voice Assistance Speech">
+          <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+        </button>
+
+        <!-- Simulator Drawer Button -->
+        <button id="toggle-sim-btn" class="btn btn-outline" title="Open Hardware & Ride Simulator">
+          <i class="fa-solid fa-gamepad"></i> Simulator
+        </button>
+
+        <!-- Mobile App Link -->
+        <a href="/mobile/" class="btn btn-outline mobile-nav-btn" style="border-color: #38bdf8; color: #38bdf8; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;" title="Open Kavach Mobile App">
+          <i class="fa-solid fa-mobile-screen-button"></i> Mobile App
+        </a>
+      </div>
+    </header>
+
+    <!-- Dashboard Content Grid -->
+    <main class="dashboard-grid">
+      <!-- Left Column: Interactive GPS Map View & Route Navigation -->
+      <section class="card map-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <h2>Live GPS & Navigation (NEO-M8N)</h2>
+          </div>
+          <div class="map-controls">
+            <span class="gps-fix-badge" id="gps-fix-badge">
+              <i class="fa-solid fa-satellite"></i> <span id="satellites-count">0</span> Sats (Standby)
+            </span>
+            <button id="center-map-btn" class="btn-icon-sm" title="Center on Helmet">
+              <i class="fa-solid fa-crosshairs"></i>
+            </button>
+            <button id="clear-trail-btn" class="btn-icon-sm" title="Clear Route Trail">
+              <i class="fa-solid fa-route"></i>
+            </button>
+            <button id="toggle-layer-btn" class="btn-icon-sm" title="Toggle Map Style">
+              <i class="fa-solid fa-layer-group"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Map Container -->
+        <div id="leaflet-map" class="map-viewport"></div>
+
+        <!-- Navigation Turn-By-Turn HUD Strip -->
+        <div class="nav-guidance-hud" id="nav-guidance-hud">
+          <div class="nav-turn-icon" id="nav-turn-icon">
+            <i class="fa-solid fa-location-dot"></i>
+          </div>
+          <div class="nav-instruction-block">
+            <span class="nav-instruction-main" id="nav-instruction-text">Awaiting Navigation Target / Live GPS</span>
+            <div class="nav-sub-details">
+              <span><i class="fa-solid fa-location-arrow"></i> Dest: <strong id="nav-dest-name">Standby</strong></span>
+              <span><i class="fa-solid fa-road"></i> Dist: <strong id="nav-dist-rem">0.0 km</strong></span>
+              <span><i class="fa-solid fa-clock"></i> ETA: <strong id="nav-eta-min">-- mins</strong></span>
+            </div>
+          </div>
+          <div class="nav-audio-cue">
+            <button class="btn-icon-sm" id="replay-nav-voice-btn" title="Replay Voice Guidance Prompt">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Map Floating Telemetry HUD -->
+        <div class="map-hud-overlay">
+          <div class="hud-item">
+            <span class="hud-label">LATITUDE</span>
+            <span class="hud-value" id="hud-lat">19.21840° N</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-label">LONGITUDE</span>
+            <span class="hud-value" id="hud-lng">73.08670° E</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-label">ALTITUDE</span>
+            <span class="hud-value" id="hud-alt">-- m</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-label">HEADING</span>
+            <span class="hud-value" id="hud-heading">0° N</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Telemetry Gauges, IMU & Controls -->
+      <section class="telemetry-column">
+        <!-- 1. Helmet Wear Detection Card -->
+        <div class="card wear-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-head-side-virus"></i>
+              <h3>1. Helmet Wear Detection</h3>
+            </div>
+            <span class="sensor-badge">IR Optical Sensor</span>
+          </div>
+          <div class="wear-card-body">
+            <div class="wear-graphic" id="wear-graphic-container">
+              <div class="helmet-visual unworn" id="helmet-visual">
+                <i class="fa-solid fa-helmet-safety" id="helmet-visual-icon"></i>
+                <div class="sensor-beam" id="sensor-beam"></div>
+              </div>
+              <div class="wear-status-info">
+                <div class="wear-state-badge danger" id="wear-state-badge">
+                  <i class="fa-solid fa-triangle-exclamation"></i> HELMET NOT WORN
+                </div>
+                <p class="wear-desc" id="wear-desc">
+                  Waiting for live ESP32 optical sensor telemetry... Voice: "Please wear your helmet."
+                </p>
+                <div class="wear-voice-reminder">
+                  <span class="voice-badge"><i class="fa-solid fa-volume-high"></i> Voice Prompt</span>
+                  <span class="voice-text">"Please wear your helmet" (plays if unworn)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Speed Monitoring & Overspeed Card -->
+        <div class="card speed-monitor-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-gauge-high"></i>
+              <h3>2. Speed Monitoring & Overspeed Limit</h3>
+            </div>
+            <span class="speed-limit-badge" id="speed-limit-tag">Limit: 60 km/h</span>
+          </div>
+          <div class="speed-monitor-body">
+            <div class="speedo-main-row">
+              <div class="speedo-container">
+                <svg class="speedo-svg" viewBox="0 0 200 130">
+                  <defs>
+                    <linearGradient id="speedoGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#3b82f6"/>
+                      <stop offset="70%" stop-color="#60a5fa"/>
+                      <stop offset="88%" stop-color="#f59e0b"/>
+                      <stop offset="100%" stop-color="#ef4444"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M 25 115 A 75 75 0 0 1 175 115" class="speedo-arc-bg" fill="none" stroke-width="12" stroke-linecap="round"/>
+                  <path id="speedo-arc-fill" d="M 25 115 A 75 75 0 0 1 175 115" class="speedo-arc-fill" fill="none" stroke="url(#speedoGrad)" stroke-width="12" stroke-dasharray="235.6" stroke-dashoffset="235.6" stroke-linecap="round"/>
+                </svg>
+                <div class="speedo-readout">
+                  <span class="speed-num" id="speed-val">0</span>
+                  <span class="speed-unit">KM/H</span>
+                </div>
+              </div>
+
+              <!-- Speed Stats Quad Grid -->
+              <div class="speed-stats-grid">
+                <div class="stat-box">
+                  <span class="stat-label"><i class="fa-solid fa-bolt"></i> Max Speed</span>
+                  <strong class="stat-val" id="speed-max">0.0 <small>km/h</small></strong>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label"><i class="fa-solid fa-chart-line"></i> Avg Speed</span>
+                  <strong class="stat-val" id="speed-avg">0.0 <small>km/h</small></strong>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label"><i class="fa-solid fa-road"></i> Total Distance</span>
+                  <strong class="stat-val" id="total-distance-val">0.0 <small>km</small></strong>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label"><i class="fa-solid fa-stopwatch"></i> Trip Duration</span>
+                  <strong class="stat-val" id="trip-time-val">0 <small>mins</small></strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Overspeed Threshold Control -->
+            <div class="overspeed-control-bar">
+              <div class="overspeed-label">
+                <span><i class="fa-solid fa-shield-halved"></i> Configurable Speed Limit: <strong id="overspeed-limit-label">60 km/h</strong></span>
+              </div>
+              <input type="range" id="overspeed-limit-slider" min="30" max="100" step="5" value="60" class="mini-slider">
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. MPU6050 6-DOF IMU (Crash Force & Abnormal Tilt) -->
+        <div class="card imu-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-compass-drafting"></i>
+              <h3>3. MPU6050 Accident & Tilt Detection</h3>
+            </div>
+            <span class="sensor-badge">I2C 6-DOF IMU</span>
+          </div>
+          <div class="imu-card-body">
+            <div class="imu-dual-gauges">
+              <!-- Total G-Force -->
+              <div class="imu-sub-gauge">
+                <div class="imu-metric-header">
+                  <span class="metric-title">Resultant Acceleration</span>
+                  <span class="metric-badge" id="g-force-badge">1.00 g</span>
+                </div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" id="g-force-bar" style="width: 16%;"></div>
+                  <div class="threshold-marker g-thresh" title="Crash Threshold: 3.5g"><span>3.5g</span></div>
+                </div>
+                <span class="metric-sub">Nominal: ~1.0g (Gravity). Crash: &gt;3.5g</span>
+              </div>
+
+              <!-- Tilt Angle -->
+              <div class="imu-sub-gauge">
+                <div class="imu-metric-header">
+                  <span class="metric-title">Helmet Tilt / Fall Angle</span>
+                  <span class="metric-badge" id="tilt-angle-badge">0.0°</span>
+                </div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" id="tilt-bar" style="width: 0%;"></div>
+                  <div class="threshold-marker tilt-thresh" title="Slide Threshold: 60°"><span>60°</span></div>
+                </div>
+                <span class="metric-sub">Upright: 0°-15°. Fall/Slide: &gt;60°</span>
+              </div>
+            </div>
+
+            <!-- Accel 3-Axis Axis readout -->
+            <div class="imu-raw-axes">
+              <span>Ax: <strong id="ax-val">0.00g</strong></span>
+              <span>Ay: <strong id="ay-val">0.00g</strong></span>
+              <span>Az: <strong id="az-val">1.00g</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Voice Assistance & Navigation Station -->
+        <div class="card voice-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-bullhorn"></i>
+              <h3>4. Voice Assistance & Audio Prompts (MAX98357A)</h3>
+            </div>
+            <span class="sensor-badge">I2S Audio Broadcaster</span>
+          </div>
+          <div class="voice-card-body">
+            <p class="voice-sub">Trigger or test instant voice prompts sent directly to the helmet's speaker:</p>
+            <div class="voice-buttons-grid">
+              <button class="btn btn-voice-action" data-voice="WEAR_HELMET">
+                <i class="fa-solid fa-head-side-virus"></i> "Please wear your helmet"
+              </button>
+              <button class="btn btn-voice-action" data-voice="REDUCE_SPEED">
+                <i class="fa-solid fa-triangle-exclamation"></i> "Please reduce your speed"
+              </button>
+              <button class="btn btn-voice-action" data-voice="TURN_LEFT">
+                <i class="fa-solid fa-arrow-turn-up fa-rotate-270"></i> "Turn left"
+              </button>
+              <button class="btn btn-voice-action" data-voice="TURN_RIGHT">
+                <i class="fa-solid fa-arrow-turn-up fa-rotate-90"></i> "Turn right"
+              </button>
+              <button class="btn btn-voice-action" data-voice="STRAIGHT">
+                <i class="fa-solid fa-arrow-up"></i> "Continue straight"
+              </button>
+              <button class="btn btn-voice-action" data-voice="DESTINATION">
+                <i class="fa-solid fa-flag-checkered"></i> "Destination reached"
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Row: Incident Feed & Emergency Dispatch Hub -->
+    <section class="bottom-grid">
+      <!-- Live Incident Timeline -->
+      <div class="card history-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <h3>Live IoE Telemetry & Incident Feed</h3>
+          </div>
+          <div class="card-actions">
+            <button id="clear-logs-btn" class="btn-text">Clear Logs</button>
+            <button id="export-logs-btn" class="btn-text"><i class="fa-solid fa-download"></i> Export</button>
+          </div>
+        </div>
+        <div class="log-table-container" id="log-container">
+          <div class="log-stream" id="log-stream">
+            <!-- Dynamic Log Items -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Emergency Contacts & Auto Dispatch -->
+      <div class="card emergency-contacts-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-phone-volume"></i>
+            <h3>Emergency Contacts & Dispatch Hub</h3>
+          </div>
+          <span class="badge badge-pulse">AUTO-SMS READY</span>
+        </div>
+        <div class="contacts-list">
+          <div class="contact-item">
+            <div class="contact-avatar emergency"><i class="fa-solid fa-truck-medical"></i></div>
+            <div class="contact-info">
+              <span class="contact-name">Emergency Medical Ambulance (102)</span>
+              <span class="contact-relation">Dispatches Nearest First Responders</span>
+            </div>
+            <a href="tel:102" class="btn-circle-call" title="Call Emergency"><i class="fa-solid fa-phone"></i></a>
+          </div>
+          <div class="contact-item">
+            <div class="contact-avatar police"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="contact-info">
+              <span class="contact-name">Highway Police Patrol (103)</span>
+              <span class="contact-relation">Accident Incident Notification</span>
+            </div>
+            <a href="tel:103" class="btn-circle-call" title="Call Police"><i class="fa-solid fa-phone"></i></a>
+          </div>
+          <div class="contact-item">
+            <div class="contact-avatar family"><i class="fa-solid fa-heart"></i></div>
+            <div class="contact-info">
+              <span class="contact-name">Emergency Contact (Family)</span>
+              <span class="contact-phone">+91-9876543210</span>
+            </div>
+            <a id="whatsapp-sos-link" href="https://wa.me/?text=EMERGENCY%20SOS%20from%20Kavach%20Smart%20Helmet!%20Location:%20https://maps.google.com/?q=27.7172,85.3240" target="_blank" class="btn-circle-call whatsapp" title="Send WhatsApp SOS"><i class="fa-brands fa-whatsapp"></i></a>
+          </div>
+        </div>
+        <div class="sos-trigger-banner">
+          <button id="manual-sos-trigger-btn" class="btn btn-danger btn-block">
+            <i class="fa-solid fa-tower-broadcast"></i> TRIGGER MANUAL SOS DISTRESS
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Floating Interactive Hardware Simulator Dock -->
+    <div id="simulator-drawer" class="simulator-drawer collapsed">
+      <div class="simulator-header" id="sim-drawer-toggle">
+        <div class="sim-header-title">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Hardware & Sensor Test Simulator</span>
+          <span class="sim-badge">IOE Evaluation Mode</span>
+        </div>
+        <div class="sim-header-icons">
+          <button id="sim-minimize-btn" class="btn-icon-xs"><i class="fa-solid fa-chevron-up"></i></button>
+        </div>
+      </div>
+
+      <div class="simulator-content">
+        <div class="sim-grid">
+          <!-- 1. Ride Simulation & Speed Control -->
+          <div class="sim-section">
+            <h4><i class="fa-solid fa-route"></i> Ride & GPS Speed Simulator</h4>
+            <div class="sim-button-group">
+              <button id="sim-auto-drive-btn" class="btn btn-sim-action">
+                <i class="fa-solid fa-play"></i> Start Auto Ride
+              </button>
+              <button id="sim-stop-drive-btn" class="btn btn-sim-action" disabled>
+                <i class="fa-solid fa-pause"></i> Pause
+              </button>
+            </div>
+            <div class="sim-control-group">
+              <label>Simulated Speed: <span id="sim-speed-val">28</span> km/h</label>
+              <input type="range" id="sim-speed-slider" min="0" max="100" value="28">
+            </div>
+          </div>
+
+          <!-- 2. Sensor Toggles (IR & TP4056 Battery) -->
+          <div class="sim-section">
+            <h4><i class="fa-solid fa-microchip"></i> Hardware Sensor Toggles</h4>
+            
+            <!-- IR Wear Sensor Toggle -->
+            <div class="sim-toggle-row">
+              <span class="sim-label">IR Wear Sensor (GPIO 18):</span>
+              <label class="switch">
+                <input type="checkbox" id="sim-wear-toggle" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <!-- TP4056 Charging State -->
+            <div class="sim-toggle-row">
+              <span class="sim-label">TP4056 Charging (USB in):</span>
+              <label class="switch">
+                <input type="checkbox" id="sim-charge-toggle">
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <!-- Battery Voltage Slider (Required Battery Level) -->
+            <div class="sim-control-group">
+              <label>Li-Ion Battery: <span id="sim-batt-val">4.12V (92%)</span></label>
+              <input type="range" id="sim-batt-slider" min="3.30" max="4.20" step="0.05" value="4.12">
+            </div>
+          </div>
+
+          <!-- 3. MPU6050 Crash & SOS Triggers -->
+          <div class="sim-section">
+            <h4><i class="fa-solid fa-burst"></i> MPU6050 & Button Events</h4>
+            <div class="sim-emergency-triggers">
+              <!-- Simulate High Impact Crash -->
+              <button id="sim-crash-btn" class="btn btn-danger btn-sim">
+                <i class="fa-solid fa-burst"></i> Simulate MPU6050 Crash (4.5g / 75° Tilt)
+              </button>
+
+              <!-- Simulate SOS Push Button -->
+              <button id="sim-sos-button" class="btn btn-warning btn-sim">
+                <i class="fa-solid fa-hand-pointer"></i> Press Helmet SOS Button (GPIO 19)
+              </button>
+            </div>
+
+            <!-- G-Force Slider -->
+            <div class="sim-control-group" style="margin-top: 10px;">
+              <label>Simulated G-Force: <span id="sim-gforce-val">1.0</span> g</label>
+              <input type="range" id="sim-gforce-slider" min="0.5" max="8.0" step="0.1" value="1.0">
+            </div>
+          </div>
+
+          <!-- 4. ESP32 JSON Payload Inspector -->
+          <div class="sim-section json-section">
+            <div class="json-header">
+              <h4><i class="fa-solid fa-code"></i> Live ESP32 JSON Telemetry</h4>
+              <button id="copy-json-btn" class="btn-text-sm"><i class="fa-solid fa-copy"></i> Copy</button>
+            </div>
+            <pre class="json-preview" id="json-preview">
+{
+  "deviceId": "KAVACH-ESP32-01",
+  "latitude": 27.71724,
+  "longitude": 85.32400,
+  "speed": 28.0,
+  "helmetWorn": true,
+  "totalG": 1.00,
+  "tiltAngle": 2.8,
+  "batteryVoltage": 4.12,
+  "batteryPercent": 92,
+  "sosActive": false
+}
+            </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS (Free OpenStreetMap - Zero API Key Required) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  
+  <!-- Sound & Voice Synthesizer (Web Audio + SpeechSynthesis API) -->
+  <script src="{% static 'js/sound-effects.js' %}"></script>
+  
+  <!-- Main Application Logic -->
+  <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

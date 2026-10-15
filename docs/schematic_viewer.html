@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kavach Smart Helmet — Master Electrical Circuit Schematic</title>
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --panel-bg: #151d30;
+      --border-color: #24324f;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .brand .badge {
+      background: rgba(14, 165, 233, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    button {
+      background: #1e293b;
+      color: #fff;
+      border: 1px solid var(--border-color);
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button:hover {
+      background: #334155;
+      border-color: #475569;
+    }
+    button.primary {
+      background: #0284c7;
+      border-color: #0369a1;
+    }
+    button.primary:hover {
+      background: #0369a1;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+    #viewer-container {
+      flex: 1;
+      overflow: auto;
+      background: #060911;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+      cursor: grab;
+      user-select: none;
+    }
+    #viewer-container:active {
+      cursor: grabbing;
+    }
+    #schematic-svg {
+      max-width: 100%;
+      height: auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+      transition: transform 0.1s ease-out;
+      transform-origin: center center;
+    }
+    .sidebar {
+      width: 380px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--border-color);
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    th, td {
+      padding: 7px 10px;
+      text-align: left;
+      border-bottom: 1px solid #1e293b;
+    }
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    td.pin {
+      font-family: 'Consolas', monospace;
+      color: #38bdf8;
+      font-weight: bold;
+    }
+    @media print {
+      header, .sidebar, .controls {
+        display: none !important;
+      }
+      body, main, #viewer-container {
+        background: #fff !important;
+        padding: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      #schematic-svg {
+        box-shadow: none !important;
+        width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>🛡️ Kavach Smart Helmet (IoE)</h1>
+      <span class="badge">Master Schematic Diagram v3.0</span>
+    </div>
+    <div class="controls">
+      <button onclick="zoomIn()">🔍+ Zoom In</button>
+      <button onclick="zoomOut()">🔍- Zoom Out</button>
+      <button onclick="resetZoom()">↺ Reset</button>
+      <button class="primary" onclick="window.print()">🖨️ Print / PDF</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="viewer-container">
+      <img id="schematic-svg" src="smart_helmet_schematic.svg" alt="Kavach Smart Helmet Master Circuit Schematic" />
+    </div>
+
+    <aside class="sidebar">
+      <div class="card">
+        <h3>⚡ Master GPIO Pinout</h3>
+        <table>
+          <thead>
+            <tr><th>Signal</th><th>ESP32 GPIO</th><th>Bus Type</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>GPS TX</td><td class="pin">GPIO 16</td><td>UART2 (RX2)</td></tr>
+            <tr><td>GPS RX</td><td class="pin">GPIO 17</td><td>UART2 (TX2)</td></tr>
+            <tr><td>MPU SDA</td><td class="pin">GPIO 21</td><td>I2C Data</td></tr>
+            <tr><td>MPU SCL</td><td class="pin">GPIO 22</td><td>I2C Clock</td></tr>
+            <tr><td>IR Sensor</td><td class="pin">GPIO 18</td><td>Digital IN</td></tr>
+            <tr><td>Touch Pad</td><td class="pin">GPIO 19</td><td>Digital IN</td></tr>
+            <tr><td>SOS Button</td><td class="pin">GPIO 4</td><td>INPUT_PULLUP</td></tr>
+            <tr><td>I2S LRC</td><td class="pin">GPIO 25</td><td>I2S Word Sync</td></tr>
+            <tr><td>I2S BCLK</td><td class="pin">GPIO 26</td><td>I2S Bit Clock</td></tr>
+            <tr><td>I2S DIN</td><td class="pin">GPIO 27</td><td>I2S Audio Data</td></tr>
+            <tr><td>Battery ADC</td><td class="pin">GPIO 36</td><td>ADC1_CH0 (VP)</td></tr>
+            <tr><td>Charge Sense</td><td class="pin">GPIO 23</td><td>Digital IN</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>🔋 Power Distribution Architecture</h3>
+        <p style="font-size: 0.84rem; color: #94a3b8; line-height: 1.6;">
+          • <strong>18650 Battery:</strong> 3.7V Nominal (3.0V – 4.2V)<br>
+          • <strong>TP4056 Board:</strong> USB-C 5V in, 1A CC/CV with DW01 protection<br>
+          • <strong>MT3608 Boost:</strong> Steps up battery to <strong>+5.0V Regulated Rail</strong><br>
+          • <strong>Audio Amp:</strong> Powered from 5.0V Rail (Max 3.2W)<br>
+          • <strong>Sensors:</strong> Powered from ESP32 Onboard 3.3V LDO Rail
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>📐 Resistor Divider (GPIO 36)</h3>
+        <p style="font-size: 0.82rem; color: #94a3b8; line-height: 1.5; margin-bottom: 8px;">
+          Two <strong>100 kΩ (1%)</strong> precision resistors safely scale battery voltage to ESP32 ADC:
+        </p>
+        <p style="font-size: 0.82rem; color: #38bdf8; font-family: 'Consolas', monospace; background: #080c16; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
+          V_ADC = V_BAT × (100k / (100k + 100k))<br>
+          V_ADC = 0.5 × V_BAT<br>
+          - 4.20V (Full) ➔ 2.10V<br>
+          - 3.70V (Nominal) ➔ 1.85V<br>
+          - 3.00V (Cutoff) ➔ 1.50V
+        </p>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    let scale = 1.0;
+    const img = document.getElementById('schematic-svg');
+
+    function zoomIn() {
+      scale = Math.min(scale + 0.25, 4.0);
+      applyScale();
+    }
+    function zoomOut() {
+      scale = Math.max(scale - 0.25, 0.4);
+      applyScale();
+    }
+    function resetZoom() {
+      scale = 1.0;
+      applyScale();
+    }
+    function applyScale() {
+      img.style.transform = `scale(${scale})`;
+    }
+
+    document.getElementById('viewer-container').addEventListener('wheel', (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        if (e.deltaY < 0) zoomIn();
+        else zoomOut();
+      }
+    });
+  </script>
+</body>
+</html>

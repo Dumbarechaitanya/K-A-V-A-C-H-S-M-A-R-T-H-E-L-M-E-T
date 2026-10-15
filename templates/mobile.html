@@ -1,0 +1,703 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kavach Smart Helmet — NEO-M8N GPS Companion</title>
+  <meta name="description" content="Kavach IoE Smart Helmet Android Application with NEO-M8N GPS Tracking, Speed Monitoring, Helmet Wear Detection and Accident Safety.">
+
+  <!-- Mobile App Meta -->
+  <meta name="theme-color" content="#1e40af">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <!-- Clean Professional Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Leaflet Standard Map CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+
+  <!-- Clean Normal Mobile Stylesheet -->
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+</head>
+<body class="app-body">
+
+  <!-- Top App Bar -->
+  <header class="app-bar">
+    <div class="app-bar-left">
+      <div class="app-icon">
+        <i class="fa-solid fa-helmet-safety"></i>
+      </div>
+      <div class="app-title-group">
+        <h1 class="app-title">Kavach Smart Helmet</h1>
+        <span class="app-subtitle">NEO-M8N GPS System</span>
+      </div>
+    </div>
+    <div class="app-bar-right">
+      <div class="status-indicator-badge" id="backend-status-badge" title="Helmet Connection Status">
+        <span class="status-dot offline"></span>
+        <span class="status-text" id="backend-status-text">Helmet Offline</span>
+      </div>
+      <button class="icon-button" id="bt-connect-btn" title="Connect Helmet via Bluetooth" aria-label="Connect Helmet Bluetooth">
+        <i class="fa-brands fa-bluetooth-b" id="bt-icon"></i>
+      </button>
+      <button class="icon-button" id="voice-toggle-btn" title="Toggle Voice Guidance" aria-label="Toggle Voice Guidance">
+        <i class="fa-solid fa-volume-high" id="voice-icon"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- GPS Engine Status Banner -->
+  <section class="gps-status-bar">
+    <div class="gps-status-col">
+      <span class="label">GPS ENGINE</span>
+      <span class="value" id="gps-engine-title">Phone GPS (Nav)</span>
+    </div>
+    <div class="gps-status-col">
+      <span class="label">FIX STATUS</span>
+      <span class="value badge-warning" id="gps-fix-status">Acquiring...</span>
+    </div>
+    <div class="gps-status-col">
+      <span class="label">SATELLITES</span>
+      <span class="value" id="gps-satellites-val">-- (Offline)</span>
+    </div>
+    <div class="gps-status-col">
+      <span class="label">ACCURACY</span>
+      <span class="value" id="gps-accuracy-val">Searching...</span>
+    </div>
+  </section>
+
+  <!-- Emergency Warning Banner (Hidden by default) -->
+  <div class="emergency-banner hidden" id="emergency-banner">
+    <div class="emergency-banner-body">
+      <i class="fa-solid fa-circle-exclamation emergency-icon"></i>
+      <div class="emergency-text">
+        <strong id="emergency-title">EMERGENCY ALERT BROADCASTED</strong>
+        <span id="emergency-details">GPS Coordinates: 19.21834° N, 73.08672° E</span>
+      </div>
+    </div>
+    <button class="btn-resolve" id="btn-resolve-emergency">Resolve</button>
+  </div>
+
+  <!-- Main Scrollable Content Viewport -->
+  <main class="main-content">
+
+    <!-- ============================================== -->
+    <!-- TAB 1: DASHBOARD (Speedometer & Overview)       -->
+    <!-- ============================================== -->
+    <section class="tab-pane active" id="pane-dashboard">
+
+      <!-- Speedometer Card -->
+      <div class="card speed-card">
+        <div class="speedometer-container">
+          <div class="speed-value-display">
+            <span class="speed-number" id="speed-display">0</span>
+            <span class="speed-unit">km/h</span>
+          </div>
+          <div class="speed-limit-tag" id="overspeed-badge">
+            <i class="fa-solid fa-gauge-high"></i> Speed Limit: <strong id="speed-limit-label">60</strong> km/h
+          </div>
+        </div>
+
+        <div class="overspeed-alert-box hidden" id="overspeed-alert-box">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Overspeed Warning: Please reduce your speed</span>
+        </div>
+
+        <!-- Trip Statistics Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Distance</span>
+            <span class="stat-value" id="trip-distance-val">0.00 km</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Max Speed</span>
+            <span class="stat-value" id="trip-max-speed-val">0.0 km/h</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Avg Speed</span>
+            <span class="stat-value" id="trip-avg-speed-val">0.0 km/h</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Altitude</span>
+            <span class="stat-value" id="trip-altitude-val">-- m</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Helmet Hardware Status Cards -->
+      <div class="cards-row">
+        <!-- Helmet Wear Sensor Card -->
+        <div class="card half-card">
+          <div class="card-header-compact">
+            <i class="fa-solid fa-user-shield card-icon-blue"></i>
+            <span class="card-title-compact">Helmet Wear Sensor</span>
+          </div>
+          <div class="sensor-status-row">
+            <span class="status-pill status-pill-offline" id="helmet-wear-status-pill">Offline</span>
+            <button class="btn-toggle-small" id="toggle-wear-btn">Toggle Sensor</button>
+          </div>
+          <span class="sensor-subtext" id="ignition-relay-status">Ignition Relay: Standby (Helmet Offline)</span>
+        </div>
+
+        <!-- Li-Ion Battery Telemetry Card -->
+        <div class="card half-card">
+          <div class="card-header-compact">
+            <i class="fa-solid fa-car-battery card-icon-blue"></i>
+            <span class="card-title-compact">Li-Ion Battery</span>
+          </div>
+          <div class="sensor-status-row">
+            <span class="battery-percentage" id="battery-pct-val">--%</span>
+            <span class="battery-voltage" id="battery-voltage-val">(--V)</span>
+          </div>
+          <span class="sensor-subtext" id="charging-status-text">Status: Helmet Offline</span>
+        </div>
+      </div>
+
+      <!-- Quick Emergency SOS Button -->
+      <div class="sos-action-card">
+        <button class="btn-sos" id="btn-sos-trigger">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>EMERGENCY SOS DISTRESS</span>
+        </button>
+        <span class="sos-description">Dispatches live NEO-M8N GPS coordinates to medical and family emergency contacts</span>
+      </div>
+
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 2: NAVIGATION (Live Route & Map)           -->
+    <!-- ============================================== -->
+    <section class="tab-pane" id="pane-navigation">
+
+      <!-- Turn Guidance Instruction Banner -->
+      <div class="card guidance-card" id="guidance-banner">
+        <div class="guidance-icon-box">
+          <i class="fa-solid fa-location-arrow" id="guidance-arrow-icon"></i>
+        </div>
+        <div class="guidance-info">
+          <div class="guidance-dist-row">
+            <strong id="guidance-distance-val">Ready</strong>
+            <span class="badge-eta" id="guidance-eta-val">Select Route</span>
+          </div>
+          <p class="guidance-instruction" id="guidance-instruction-text">Tap on map or search below to navigate</p>
+        </div>
+        <button class="btn-audio-repeat" id="btn-speak-instruction" title="Play Voice Guidance">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
+
+      <!-- Standard Leaflet Map View -->
+      <div class="card map-card">
+        <div id="navigation-map" class="navigation-map"></div>
+        <div class="map-hint-floating" id="map-hint-floating">
+          <i class="fa-solid fa-hand-pointer"></i> Tap map to set destination
+        </div>
+        <div class="map-controls-floating">
+          <button class="map-btn" id="btn-center-map" title="Center on Current Position">
+            <i class="fa-solid fa-location-crosshairs"></i>
+          </button>
+          <button class="map-btn" id="btn-zoom-in" title="Zoom In">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+          <button class="map-btn" id="btn-zoom-out" title="Zoom Out">
+            <i class="fa-solid fa-minus"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Destination Selection & Road Route Card -->
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title"><i class="fa-solid fa-route"></i> Destination &amp; Road Route</h3>
+          <button id="btn-clear-route-header" class="btn-clear-dest hidden" title="Clear Destination">
+            <i class="fa-solid fa-xmark"></i> Clear
+          </button>
+        </div>
+
+        <!-- Interactive Destination Search -->
+        <div class="dest-search-row">
+          <input type="text" id="dest-search-input" class="dest-search-input" placeholder="Search address, landmark, or city...">
+          <button id="btn-search-dest" class="btn-primary-small"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+        </div>
+        <div id="search-results-dropdown" class="search-results-dropdown hidden"></div>
+
+        <!-- Active Route / Selection Status -->
+        <div id="nav-active-status" class="nav-active-status">
+          <div class="nav-status-empty" id="nav-status-empty">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <div>
+              <strong>Tap anywhere on the map</strong> or search above to calculate real road route.
+            </div>
+          </div>
+          
+          <div class="nav-selected-card hidden" id="nav-selected-card">
+            <div class="nav-selected-main">
+              <div class="nav-selected-icon">
+                <i class="fa-solid fa-location-dot"></i>
+              </div>
+              <div class="nav-selected-meta">
+                <strong id="nav-selected-name">Selected Location</strong>
+                <span id="nav-selected-desc">Calculating real road route...</span>
+              </div>
+            </div>
+            <div class="nav-selected-stats" id="nav-selected-stats">
+              <div class="nav-stat-chip">
+                <i class="fa-solid fa-road"></i>
+                <span id="nav-stat-dist">-- km</span>
+              </div>
+              <div class="nav-stat-chip">
+                <i class="fa-solid fa-clock"></i>
+                <span id="nav-stat-eta">-- mins</span>
+              </div>
+            </div>
+            <div class="nav-selected-buttons">
+              <button id="btn-fit-route" class="btn-action-small">
+                <i class="fa-solid fa-compress"></i> View Route
+              </button>
+              <button id="btn-cancel-route" class="btn-action-small btn-cancel">
+                <i class="fa-solid fa-xmark"></i> Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 3: GPS TELEMETRY (NEO-M8N Hardware Status) -->
+    <!-- ============================================== -->
+    <section class="tab-pane" id="pane-gps">
+
+      <!-- NEO-M8N Technical Specification Card -->
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title"><i class="fa-solid fa-microchip"></i> u-blox NEO-M8N GNSS Module</h3>
+          <span class="status-pill status-pill-offline" id="neo-hardware-badge">Standby / No Fix</span>
+        </div>
+        <p class="card-description">
+          High-precision concurrent GNSS positioning system tracking GPS, GLONASS, and Galileo constellations.
+        </p>
+
+        <div class="specs-table">
+          <div class="spec-row">
+            <span class="spec-name">Chipset Model</span>
+            <span class="spec-val">u-blox NEO-M8N-0-10</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-name">Channels</span>
+            <span class="spec-val">72-Channel Engine</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-name">Constellations</span>
+            <span class="spec-val">GPS + GLONASS + Galileo</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-name">Hardware Interface</span>
+            <span class="spec-val">UART2 (GPIO 16 RX / 17 TX)</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-name">Baud Rate</span>
+            <span class="spec-val">9600 bps</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-name">Update Rate</span>
+            <span class="spec-val">1 Hz - 5 Hz</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live GPS Coordinates & Heading Card -->
+      <div class="card">
+        <h3 class="card-title"><i class="fa-solid fa-location-dot"></i> Live Coordinates & Position</h3>
+        <div class="coordinates-grid">
+          <div class="coord-box">
+            <span class="coord-label">Latitude</span>
+            <span class="coord-val" id="gps-lat-val">Waiting for Fix...</span>
+          </div>
+          <div class="coord-box">
+            <span class="coord-label">Longitude</span>
+            <span class="coord-val" id="gps-lng-val">Waiting for Fix...</span>
+          </div>
+          <div class="coord-box">
+            <span class="coord-label">Heading</span>
+            <span class="coord-val" id="gps-heading-val">--</span>
+          </div>
+          <div class="coord-box">
+            <span class="coord-label">Altitude</span>
+            <span class="coord-val" id="gps-alt-val">-- meters</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raw NMEA-0183 Diagnostic Stream -->
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title"><i class="fa-solid fa-terminal"></i> NMEA-0183 Output Stream</h3>
+          <button class="btn-copy" id="btn-copy-nmea">Copy Data</button>
+        </div>
+        <p class="card-description">Live sentence packets ($GNGGA, $GNRMC, $GNVTG) emitted by NEO-M8N GPS.</p>
+        <pre class="nmea-output" id="nmea-output-console">
+[HARDWARE STREAM OFFLINE]
+u-blox NEO-M8N GNSS module is not connected.
+Power on ESP32 helmet unit to stream live NMEA sentences.
+        </pre>
+      </div>
+
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 4: SAFETY & ACCIDENTS (MPU6050 Protection) -->
+    <!-- ============================================== -->
+    <section class="tab-pane" id="pane-safety">
+
+      <!-- MPU6050 6-DOF IMU Status Card -->
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title"><i class="fa-solid fa-cubes"></i> MPU6050 6-DOF IMU Telemetry</h3>
+          <span class="status-pill status-pill-offline">Sensor Offline</span>
+        </div>
+
+        <div class="imu-grid">
+          <div class="imu-item">
+            <span class="imu-label">Resultant G-Force</span>
+            <span class="imu-val" id="imu-total-g">-- g</span>
+            <span class="imu-sub">Threshold: 3.5g</span>
+          </div>
+          <div class="imu-item">
+            <span class="imu-label">Tilt Angle</span>
+            <span class="imu-val" id="imu-tilt-deg">--°</span>
+            <span class="imu-sub">Threshold: 60°</span>
+          </div>
+          <div class="imu-item">
+            <span class="imu-label">Accel X</span>
+            <span class="imu-val" id="imu-accel-x">-- g</span>
+          </div>
+          <div class="imu-item">
+            <span class="imu-label">Accel Y</span>
+            <span class="imu-val" id="imu-accel-y">-- g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 15-Second False-Alarm Window Card -->
+      <div class="card">
+        <h3 class="card-title"><i class="fa-solid fa-shield-halved"></i> 15-Second Accident Cancellation Window</h3>
+        <p class="card-description">
+          When an impact (&gt;3.5g) or fall tilt (&gt;60°) is detected by the MPU6050, the helmet initiates an audible 15-second countdown. If conscious and safe, the rider cancels the alert to avoid false emergency dispatches.
+        </p>
+
+        <div class="safety-steps">
+          <div class="step-item">
+            <span class="step-num">1</span>
+            <div><strong>Impact / Tilt Sensing:</strong> IMU detects abnormal shock or bike fall.</div>
+          </div>
+          <div class="step-item">
+            <span class="step-num">2</span>
+            <div><strong>Voice Prompt:</strong> <em>"Accident detected. Press the cancel button if you are safe."</em></div>
+          </div>
+          <div class="step-item">
+            <span class="step-num">3</span>
+            <div><strong>Cancellation Window:</strong> Rider presses the helmet button within 15 seconds.</div>
+          </div>
+          <div class="step-item">
+            <span class="step-num">4</span>
+            <div><strong>Emergency Broadcast:</strong> If not cancelled, GPS coordinates are sent to rescue services.</div>
+          </div>
+        </div>
+
+        <div class="test-accident-box">
+          <button class="btn-secondary" id="btn-test-accident-window">
+            <i class="fa-solid fa-circle-play"></i> Test 15-Second Emergency Window
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Incident Alerts -->
+      <div class="card">
+        <div class="card-header-row">
+          <div>
+            <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Incident History</h3>
+            <span class="sensor-subtext" style="display:block; margin-top:2px;">Logged Past Events (Audit Trail)</span>
+          </div>
+          <button class="btn-clear-logs" id="btn-clear-incident-history" title="Clear Past Incident Logs" style="background:#fee2e2; color:#b91c1c; border:none; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+            <i class="fa-solid fa-trash-can"></i> Clear History
+          </button>
+        </div>
+        <div class="incidents-list" id="incidents-list-container">
+          {% for inc in incidents %}
+            <div class="incident-item {{ inc.severity }}">
+              <div class="inc-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div class="inc-content">
+                <strong>{{ inc.alert_type }}</strong>
+                <p>{{ inc.message }}</p>
+                <small>{{ inc.created_at|date:"H:i:s" }}</small>
+              </div>
+            </div>
+          {% empty %}
+            <p class="empty-text">No incidents recorded. System functioning normally.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 5: SETTINGS (Configuration)                -->
+    <!-- ============================================== -->
+    <section class="tab-pane" id="pane-settings">
+
+      <!-- Backend Connection Settings -->
+      <div class="card">
+        <h3 class="card-title"><i class="fa-solid fa-server"></i> Server Configuration</h3>
+        
+        <div class="form-group">
+          <label for="cfg-device-id">Device ID</label>
+          <input type="text" id="cfg-device-id" class="form-input" value="KAVACH-ESP32-01">
+        </div>
+
+        <div class="form-group">
+          <label for="cfg-server-url">Backend Server URL</label>
+          <input type="text" id="cfg-server-url" class="form-input" value="http://127.0.0.1:3000">
+        </div>
+
+        <div class="form-group">
+          <label for="cfg-speed-limit">Overspeed Limit Threshold (km/h)</label>
+          <input type="number" id="cfg-speed-limit" class="form-input" value="60" min="30" max="120">
+        </div>
+      </div>
+
+      <!-- Bluetooth Link Card -->
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title"><i class="fa-brands fa-bluetooth-b"></i> Bluetooth Link (ESP32)</h3>
+          <span class="status-pill status-pill-offline" id="bt-status-pill">Disconnected</span>
+        </div>
+        <p class="card-description" id="bt-status-desc">
+          Direct hardware telemetry link for bike testing. Target device: <strong>KAVACH_HELMET_01</strong>.
+        </p>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="btn-toggle-small" id="btn-manual-bt-connect" style="flex:1; padding:10px 14px; font-size:13px;">
+            <i class="fa-solid fa-link"></i> Connect Helmet
+          </button>
+          <button class="btn-toggle-small" id="btn-manual-bt-disconnect" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 14px; font-size:13px;">
+            <i class="fa-solid fa-link-slash"></i> Disconnect
+          </button>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+          <button class="btn-toggle-small" id="btn-show-hw-diag" style="width:100%; padding:10px 14px; font-size:13px; background:#f0fdf4; color:#166534; border:1px solid #86efac;">
+            <i class="fa-solid fa-clipboard-check"></i> View Hardware Self-Test (1/0 Diagnostics)
+          </button>
+        </div>
+      </div>
+
+      <!-- Voice Guidance & Sound Settings -->
+      <div class="card">
+        <h3 class="card-title"><i class="fa-solid fa-bell"></i> Audio & Alerts</h3>
+
+        <div class="setting-switch-row">
+          <div>
+            <strong>Voice Guidance Prompts</strong>
+            <p class="setting-subtext">MAX98357A helmet speaker announcements</p>
+          </div>
+          <input type="checkbox" id="chk-voice-enabled" class="toggle-checkbox" checked>
+        </div>
+
+        <div class="setting-switch-row">
+          <div>
+            <strong>Vibration Feedback</strong>
+            <p class="setting-subtext">Haptic alerts for overspeed and turns</p>
+          </div>
+          <input type="checkbox" id="chk-vibrate-enabled" class="toggle-checkbox" checked>
+        </div>
+      </div>
+
+      <!-- About Information -->
+      <div class="card">
+        <h3 class="card-title"><i class="fa-solid fa-circle-info"></i> About Kavach System</h3>
+        <p class="card-description">
+          Kavach Smart Helmet IoE Application • Version 2.4.0<br>
+          Connected to ESP32 Hardware, u-blox NEO-M8N GNSS, MPU6050 IMU and MAX98357A Audio.
+        </p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar (Standard Android Bottom Bar) -->
+  <nav class="bottom-nav">
+    <button class="nav-button active" data-target="pane-dashboard">
+      <i class="fa-solid fa-gauge"></i>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-button" data-target="pane-navigation">
+      <i class="fa-solid fa-map"></i>
+      <span>Navigation</span>
+    </button>
+    <button class="nav-button" data-target="pane-gps">
+      <i class="fa-solid fa-satellite"></i>
+      <span>NEO-M8N</span>
+    </button>
+    <button class="nav-button" data-target="pane-safety">
+      <i class="fa-solid fa-shield-halved"></i>
+      <span>Safety</span>
+    </button>
+    <button class="nav-button" data-target="pane-settings">
+      <i class="fa-solid fa-gear"></i>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <!-- 15-Second False-Alarm Window Emergency Modal -->
+  <div class="modal-backdrop hidden" id="accident-modal">
+    <div class="modal-box">
+      <div class="modal-badge-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>ACCIDENT / IMPACT DETECTED</span>
+      </div>
+
+      <div class="countdown-circle">
+        <span class="countdown-seconds" id="countdown-number">15</span>
+        <span class="countdown-label">Seconds</span>
+      </div>
+
+      <h2 class="modal-heading">Accident Detected!</h2>
+      <p class="modal-voice-quote">
+        <em>"Accident detected. Press the cancel button if you are safe."</em>
+      </p>
+
+      <div class="modal-stats-row">
+        <div>G-Force: <strong id="modal-g-force">4.50 g</strong></div>
+        <div>Tilt: <strong id="modal-tilt">75.0°</strong></div>
+        <div>Speed: <strong id="modal-speed">42 km/h</strong></div>
+      </div>
+
+      <p class="modal-instructions">
+        If you are conscious and safe, tap the button below or press the <strong>Helmet Push Button (GPIO 19)</strong> to cancel before emergency services are notified.
+      </p>
+
+      <div class="modal-actions">
+        <button class="btn-safe" id="btn-cancel-accident">
+          <i class="fa-solid fa-shield-check"></i> I AM SAFE (CANCEL ALERT)
+        </button>
+        <button class="btn-dispatch-now" id="btn-instant-dispatch">
+          Dispatch Emergency Alert Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bluetooth Hardware Diagnostics Modal (1/0 Checklist) -->
+  <div class="modal-backdrop hidden" id="hw-diag-modal">
+    <div class="modal-box hw-diag-box">
+      <div class="modal-header-row">
+        <div class="diag-header-title">
+          <i class="fa-solid fa-microchip" style="color:#2563eb;"></i>
+          <h3>Helmet Hardware Self-Test</h3>
+        </div>
+        <button class="btn-close-modal" id="btn-close-hw-diag" title="Close">&times;</button>
+      </div>
+      <p class="diag-subtitle">Hardware connection status reported by ESP32 over Bluetooth:</p>
+
+      <div class="diag-grid">
+        <!-- ESP32 Core -->
+        <div class="diag-card">
+          <div class="diag-info">
+            <span class="diag-name"><i class="fa-solid fa-cpu"></i> ESP32 Microcontroller</span>
+            <span class="diag-desc">Dual-Core 240MHz System</span>
+          </div>
+          <div class="diag-value-pill val-1" id="diag-val-esp">
+            <span class="diag-bin">1</span>
+            <span class="diag-text">CONNECTED</span>
+          </div>
+        </div>
+
+        <!-- MAX98357A Amp -->
+        <div class="diag-card">
+          <div class="diag-info">
+            <span class="diag-name"><i class="fa-solid fa-volume-high"></i> MAX98357A Audio Amp</span>
+            <span class="diag-desc">I2S Audio Output Driver</span>
+          </div>
+          <div class="diag-value-pill val-1" id="diag-val-amp">
+            <span class="diag-bin">1</span>
+            <span class="diag-text">CONNECTED</span>
+          </div>
+        </div>
+
+        <!-- MPU6050 IMU -->
+        <div class="diag-card">
+          <div class="diag-info">
+            <span class="diag-name"><i class="fa-solid fa-compass"></i> MPU6050 6-DOF IMU</span>
+            <span class="diag-desc">I2C Accelerometer / Gyro (0x68)</span>
+          </div>
+          <div class="diag-value-pill val-0" id="diag-val-mpu">
+            <span class="diag-bin">0</span>
+            <span class="diag-text">DISCONNECTED</span>
+          </div>
+        </div>
+
+        <!-- NEO-M8N GPS -->
+        <div class="diag-card">
+          <div class="diag-info">
+            <span class="diag-name"><i class="fa-solid fa-satellite"></i> NEO-M8N GPS Module</span>
+            <span class="diag-desc">UART2 (GPIO 16/17) Stream</span>
+          </div>
+          <div class="diag-value-pill val-0" id="diag-val-gps">
+            <span class="diag-bin">0</span>
+            <span class="diag-text">NO NMEA STREAM</span>
+          </div>
+        </div>
+
+        <!-- IR Wear Sensor -->
+        <div class="diag-card">
+          <div class="diag-info">
+            <span class="diag-name"><i class="fa-solid fa-eye"></i> IR Helmet Wear Sensor</span>
+            <span class="diag-desc">GPIO 34 Optical Beam Detection</span>
+          </div>
+          <div class="diag-value-pill val-0" id="diag-val-ir">
+            <span class="diag-bin">0</span>
+            <span class="diag-text">NOT WORN</span>
+          </div>
+        </div>
+
+        <!-- Touch Sensor -->
+        <div class="diag-card">
+          <div class="diag-info">
+            <span class="diag-name"><i class="fa-solid fa-hand-pointer"></i> Touch Sensor (TTP223)</span>
+            <span class="diag-desc">GPIO 19 Capacitive Input</span>
+          </div>
+          <div class="diag-value-pill val-0" id="diag-val-touch">
+            <span class="diag-bin">0</span>
+            <span class="diag-text">RELEASED / IDLE</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn-primary-small" id="btn-ack-hw-diag" style="width:100%; padding:11px; font-weight:700; border-radius:8px; font-size:13px; text-align:center;">
+          <i class="fa-solid fa-check"></i> Continue to App Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet Map JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+  <!-- Sound Engine -->
+  <script src="{% static 'js/sound-effects.js' %}"></script>
+
+  <!-- Mobile App Logic -->
+  <script src="{% static 'js/mobile.js' %}"></script>
+
+</body>
+</html>

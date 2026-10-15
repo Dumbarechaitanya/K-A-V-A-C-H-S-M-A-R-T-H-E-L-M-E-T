@@ -1,0 +1,81 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+*.env
+
+# Node / Backend
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Android / Gradle
+.gradle/
+**/.gradle/
+build/
+**/build/
+local.properties
+**/local.properties
+*.apk
+*.aab
+.idea/
+**/.idea/
+*.iml
+**/*.iml
+
+# PlatformIO & Arduino Build Artifacts
+.pio/
+**/.pio/
+.pioenvs/
+.piolibdeps/
+.clangd/
+
+# Component Testing Files & Test Benches (Excluded per requirement)
+component_test/
+speaker_test_bench/
+component_test.ino
+gps_test.ino
+mpu6050_esp32_test.ino
+speaker_test.ino
+wear_sensor_test.ino
+voice_tester.h
+*test*.ino
+*_test.ino
+**/voice_tester.h
+**/component_test*
+**/speaker_test*
+
+# Temporary Archives & Scratch Dumps
+*.zip
+files/
+mnt/
+voice_preview.wav
+
+# Django Static Collection
+staticfiles/
+
+# SQLite (if used locally)
+*.sqlite3
+db.sqlite3
+
+# IDE & Editor files
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
