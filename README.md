@@ -134,4 +134,4 @@ python manage.py collectstatic --no-input
 python manage.py runserver 8000
 ```
 
-Open your browser at **`http://localhost:8000`** to view the interactive dashboard.
+Open your browser at **`(https://kavach-smart-helmet-django.onrender.com/)`** to view the interactive dashboard.
