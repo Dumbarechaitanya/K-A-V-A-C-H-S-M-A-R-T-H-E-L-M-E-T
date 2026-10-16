@@ -347,10 +347,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (leafletMap.touchZoom) leafletMap.touchZoom.enable();
     if (leafletMap.doubleClickZoom) leafletMap.doubleClickZoom.enable();
 
-    // Clean High-Resolution OpenStreetMap Tiles (Zero API Key, Zero Watermarks, 100% Free)
-    const baseTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Colorful, High-Resolution Esri World Street Map (Zero API Key, Zero Watermarks, Never Blocked)
+    const baseTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Street Map'
     });
 
     baseTileLayer.addTo(leafletMap);

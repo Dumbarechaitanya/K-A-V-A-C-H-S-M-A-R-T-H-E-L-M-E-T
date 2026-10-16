@@ -579,13 +579,18 @@
     </div>
   </div>
 
-  <!-- Leaflet JS (Free OpenStreetMap - Zero API Key Required) -->
+  <!-- Leaflet JS (Free Colorful Maps - Zero API Key Required) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script>
+    if (typeof L === 'undefined') {
+      document.write('<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>');
+    }
+  </script>
   
   <!-- Sound & Voice Synthesizer (Web Audio + SpeechSynthesis API) -->
   <script src="{% static 'js/sound-effects.js' %}"></script>
   
   <!-- Main Application Logic (Cache-busted for instant live deployment updates) -->
-  <script src="{% static 'js/app.js' %}?v=20261016_2245"></script>
+  <script src="{% static 'js/app.js' %}?v=20261017_0100"></script>
 </body>
 </html>

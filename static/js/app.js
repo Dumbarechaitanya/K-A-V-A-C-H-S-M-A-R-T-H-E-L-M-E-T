@@ -180,8 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
     copyJsonBtn: document.getElementById('copy-json-btn')
   };
 
-  // Leaflet Map Setup (Uses 100% Free Open-Source OpenStreetMap & CartoDB - ZERO API Key Required)
-  let map, marker, destinationMarker, polyline, baseTileLayer;
+  // Leaflet Map Setup (Uses Free High-Resolution Colorful Esri World Street Map - ZERO API Key Required, Never Blocked)
+  let map, marker, destinationMarker, polyline, baseTileLayer, navRoutePolyline = null;
 
   function initMap() {
     if (typeof L === 'undefined') {
@@ -190,73 +190,100 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const mapContainer = document.getElementById('leaflet-map');
+    if (!mapContainer) {
+      console.warn('leaflet-map element not found in DOM.');
+      return;
+    }
+
+    // Clean up existing map instance if already initialized
+    if (map) {
+      try {
+        map.remove();
+      } catch (e) {
+        console.warn('Map cleanup notice:', e);
+      }
+      map = null;
+      marker = null;
+      destinationMarker = null;
+      polyline = null;
+      baseTileLayer = null;
+      navRoutePolyline = null;
+    }
+
     try {
+      const initLat = (typeof state.location.lat === 'number' && !isNaN(state.location.lat)) ? state.location.lat : 19.2184;
+      const initLng = (typeof state.location.lng === 'number' && !isNaN(state.location.lng)) ? state.location.lng : 73.0867;
+
       map = L.map('leaflet-map', {
         zoomControl: true,
-        attributionControl: true
-      }).setView([state.location.lat, state.location.lng], 13);
+        attributionControl: true,
+        minZoom: 3,
+        maxZoom: 19
+      }).setView([initLat, initLng], 15);
 
-      // Clean High-Resolution OpenStreetMap Tiles (Zero API Key, Zero Watermarks, 100% Free)
-      baseTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // Colorful, High-Resolution Esri World Street Map (Zero API Key, Zero Watermarks, Never Blocked with 403)
+      baseTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Street Map'
       });
 
       baseTileLayer.addTo(map);
+
+      // Custom Glowing Helmet Marker
+      const helmetIcon = L.divIcon({
+        className: 'custom-helmet-pin',
+        html: `
+          <div class="pin-pulse"></div>
+          <div class="pin-body">
+            <i class="fa-solid fa-motorcycle"></i>
+          </div>
+        `,
+        iconSize: [42, 42],
+        iconAnchor: [21, 21]
+      });
+
+      marker = L.marker([initLat, initLng], { icon: helmetIcon }).addTo(map);
+
+      // Destination Pin (only if active)
+      if (state.navigation && state.navigation.active && state.navigation.destLat && state.navigation.destLng) {
+        const destIcon = L.divIcon({
+          className: 'custom-dest-pin',
+          html: `<div class="dest-pin-body"><i class="fa-solid fa-flag-checkered"></i></div>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 36]
+        });
+        destinationMarker = L.marker([state.navigation.destLat, state.navigation.destLng], { icon: destIcon })
+          .addTo(map)
+          .bindPopup(`<b>Destination:</b> ${state.navigation.destinationName || 'Target'}`);
+      }
+
+      // GPS Route Trail Polyline
+      polyline = L.polyline([[initLat, initLng]], {
+        color: '#2563eb',
+        weight: 4,
+        opacity: 0.9,
+        dashArray: '3, 6'
+      }).addTo(map);
+
+      // Staggered size invalidation to guarantee map renders in all desktop browser viewports
+      setTimeout(() => { if (map) map.invalidateSize(true); }, 100);
+      setTimeout(() => { if (map) map.invalidateSize(true); }, 350);
+      setTimeout(() => { if (map) map.invalidateSize(true); }, 900);
+
     } catch (e) {
       console.error('Error initializing Leaflet map:', e);
     }
-
-    // Custom Glowing Helmet Marker
-    const helmetIcon = L.divIcon({
-      className: 'custom-helmet-pin',
-      html: `
-        <div class="pin-pulse"></div>
-        <div class="pin-body">
-          <i class="fa-solid fa-motorcycle"></i>
-        </div>
-      `,
-      iconSize: [42, 42],
-      iconAnchor: [21, 21]
-    });
-
-    marker = L.marker([state.location.lat, state.location.lng], { icon: helmetIcon }).addTo(map);
-
-    // Destination Pin
-    const destIcon = L.divIcon({
-      className: 'custom-dest-pin',
-      html: `
-        <div class="dest-pin-body">
-          <i class="fa-solid fa-flag-checkered"></i>
-        </div>
-      `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 36]
-    });
-
-    destinationMarker = L.marker([state.navigation.destLat, state.navigation.destLng], { icon: destIcon })
-      .addTo(map)
-      .bindPopup(`<b>Destination:</b> ${state.navigation.destinationName}`);
-
-    // GPS Route Trail Polyline
-    polyline = L.polyline([[state.location.lat, state.location.lng]], {
-      color: '#3b82f6',
-      weight: 4,
-      opacity: 0.9,
-      dashArray: '3, 6'
-    }).addTo(map);
-
-    // Set initial map viewport centered at default coordinates (Dombivli) until ESP32 NEO-M8N GPS lock arrives
-    map.setView([state.location.lat, state.location.lng], 15);
   }
 
   // Update Location on Map & HUD
   function updateLocation(lat, lng, speed = 0, heading = 0) {
+    if (typeof lat !== 'number' || isNaN(lat) || typeof lng !== 'number' || isNaN(lng)) return;
     state.location.lat = lat;
     state.location.lng = lng;
     state.location.heading = heading;
 
-    if (marker) {
+    if (map && marker) {
       marker.setLatLng([lat, lng]);
       const pinBody = document.querySelector('.pin-body');
       if (pinBody && heading) {
@@ -264,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (polyline) {
+    if (map && polyline) {
       polyline.addLatLng([lat, lng]);
     }
 
@@ -274,11 +301,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Update HUD
-    els.hudLat.textContent = `${lat.toFixed(5)}° N`;
-    els.hudLng.textContent = `${lng.toFixed(5)}° E`;
-    els.hudHeading.textContent = `${Math.round(heading)}° ${getCompassHeading(heading)}`;
-    els.whatsappSosLink.href = `https://wa.me/?text=EMERGENCY%20SOS%20from%20Kavach%20Smart%20Helmet!%20Location:%20https://maps.google.com/?q=${lat},${lng}`;
-    els.emergencyMapsBtn.href = `https://maps.google.com/?q=${lat},${lng}`;
+    if (els.hudLat) els.hudLat.textContent = `${lat.toFixed(5)}° N`;
+    if (els.hudLng) els.hudLng.textContent = `${lng.toFixed(5)}° E`;
+    if (els.hudHeading) els.hudHeading.textContent = `${Math.round(heading)}° ${getCompassHeading(heading)}`;
+    if (els.whatsappSosLink) els.whatsappSosLink.href = `https://wa.me/?text=EMERGENCY%20SOS%20from%20Kavach%20Smart%20Helmet!%20Location:%20https://maps.google.com/?q=${lat},${lng}`;
+    if (els.emergencyMapsBtn) els.emergencyMapsBtn.href = `https://maps.google.com/?q=${lat},${lng}`;
 
     updateJsonPreview();
   }
@@ -289,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Update Helmet Wear State
-  function updateWearStatus(isWorn) {
+  function updateWearStatus(isWorn, playSound = true) {
     state.helmetWorn = isWorn;
     if (isWorn) {
       els.headerWearChip.className = 'status-chip wear-chip';
@@ -298,7 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
       els.wearStateBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> HELMET PROPERLY WORN';
       els.wearDesc.textContent = 'IR Beam engaged. Helmet properly secured on rider.';
       els.helmetVisual.classList.remove('unworn');
-      window.audioEngine.playHelmetWorn();
+      if (playSound && window.audioEngine && typeof window.audioEngine.playHelmetWorn === 'function') {
+        try { window.audioEngine.playHelmetWorn(); } catch (e) {}
+      }
     } else {
       els.headerWearChip.className = 'status-chip wear-chip danger';
       els.headerWearText.textContent = 'Helmet Not Worn';
@@ -306,7 +335,9 @@ document.addEventListener('DOMContentLoaded', () => {
       els.wearStateBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> HELMET NOT WORN';
       els.wearDesc.textContent = 'IR sensor detected helmet is removed! Voice reminder: "Please wear your helmet."';
       els.helmetVisual.classList.add('unworn');
-      window.audioEngine.playHelmetRemoved();
+      if (playSound && window.audioEngine && typeof window.audioEngine.playHelmetRemoved === 'function') {
+        try { window.audioEngine.playHelmetRemoved(); } catch (e) {}
+      }
     }
     updateJsonPreview();
   }
@@ -525,7 +556,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Dashboard Live Navigation Sync (from Mobile App or Cloud Server)
-  let navRoutePolyline = null;
   function updateDashboardNavigation(navData) {
     if (!navData) return;
 
@@ -733,25 +763,39 @@ document.addEventListener('DOMContentLoaded', () => {
       els.simDrawer.classList.toggle('collapsed');
       const isCollapsed = els.simDrawer.classList.contains('collapsed');
       els.simMinimizeBtn.innerHTML = isCollapsed ? '<i class="fa-solid fa-chevron-up"></i>' : '<i class="fa-solid fa-chevron-down"></i>';
+      setTimeout(() => {
+        if (map) map.invalidateSize(true);
+      }, 250);
     };
     els.toggleSimBtn.addEventListener('click', toggleDrawer);
     els.simDrawerToggle.addEventListener('click', toggleDrawer);
 
     // Map Actions
-    els.centerMapBtn.addEventListener('click', () => map.setView([state.location.lat, state.location.lng], 16));
+    els.centerMapBtn.addEventListener('click', () => {
+      if (map) {
+        map.setView([state.location.lat, state.location.lng], 16);
+        map.invalidateSize(true);
+      }
+    });
     els.clearTrailBtn.addEventListener('click', () => {
-      polyline.setLatLngs([[state.location.lat, state.location.lng]]);
+      if (polyline) {
+        polyline.setLatLngs([[state.location.lat, state.location.lng]]);
+      }
       addLog('MAP', 'GPS route trail cleared from map.', 'info');
     });
     let currentTileLayerIndex = 0;
     const tileLayers = [
-      { name: 'Esri World Street Map', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', maxZ: 19 },
-      { name: 'Google Roadmap', url: 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', maxZ: 20 },
-      { name: 'Satellite Imagery', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', maxZ: 19 }
+      { name: 'Esri World Street Map (Vibrant)', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', maxZ: 19 },
+      { name: 'Esri World Topo Map (Topographic)', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', maxZ: 19 },
+      { name: 'Esri Satellite Imagery (Aerial)', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', maxZ: 19 },
+      { name: 'OpenTopoMap (High Contrast)', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', maxZ: 17 }
     ];
 
     els.toggleLayerBtn.addEventListener('click', () => {
-      map.removeLayer(baseTileLayer);
+      if (!map) return;
+      if (baseTileLayer) {
+        map.removeLayer(baseTileLayer);
+      }
       currentTileLayerIndex = (currentTileLayerIndex + 1) % tileLayers.length;
       const selected = tileLayers[currentTileLayerIndex];
       baseTileLayer = L.tileLayer(selected.url, {
@@ -964,11 +1008,16 @@ document.addEventListener('DOMContentLoaded', () => {
   initMap();
   setupEventListeners();
 
-  // Initial State: Start with real disconnected/standby values
+  // Attach global window resize listener to keep map fully responsive
+  window.addEventListener('resize', () => {
+    if (map) map.invalidateSize(true);
+  });
+
+  // Initial State: Start with real disconnected/standby values (quiet initialization)
   updateConnectionStatus(false);
   updateSpeedometer(0);
   updateIMU(1.00, 0.0);
-  updateWearStatus(false);
+  updateWearStatus(false, false);
   updateBattery(4.12, false);
 
   // Poll immediately and keep polling every 1.5 seconds for true real-time data
