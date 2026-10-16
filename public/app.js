@@ -190,11 +190,23 @@ document.addEventListener('DOMContentLoaded', () => {
       attributionControl: true
     }).setView([state.location.lat, state.location.lng], 15);
 
-    // Colorful, High-Resolution Esri World Street Map (Zero API Key, Zero Watermarks, Never Blocked)
-    baseTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    // Classic Colorful OpenStreetMap (Direct CDN tile server)
+    baseTileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Street Map'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+
+    baseTileLayer.on('tileerror', function() {
+      if (!map._hasFallenBack) {
+        map._hasFallenBack = true;
+        console.info('Switching to secondary map tile mirror...');
+        try { map.removeLayer(baseTileLayer); } catch(e) {}
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 19,
+          attribution: '&copy; Esri &copy; OpenStreetMap contributors'
+        }).addTo(map);
+      }
+    });
 
     // Custom Glowing Helmet Marker
     const helmetIcon = L.divIcon({
