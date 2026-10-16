@@ -196,20 +196,12 @@ document.addEventListener('DOMContentLoaded', () => {
         attributionControl: true
       }).setView([state.location.lat, state.location.lng], 13);
 
-      // 100% Free, High-Resolution Esri World Street Map (Zero API Key, Zero Watermarks, Never Blocked)
-      baseTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      // High-Resolution CartoDB Voyager & OpenStreetMap (Zero API Key, Zero Watermarks, Never Blocked, Never shows "Map data not yet available")
+      baseTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
         maxZoom: 19,
-        attribution: '&copy; Esri &copy; OpenStreetMap contributors'
-      });
-
-      // Automatic failover to Google Maps tile server if Esri is unreachable
-      baseTileLayer.on('tileerror', function() {
-        console.info('Switching to Google Maps tile mirror...');
-        map.removeLayer(baseTileLayer);
-        baseTileLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-          maxZoom: 20,
-          attribution: '&copy; Google Maps'
-        }).addTo(map);
+        maxNativeZoom: 18,
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
       });
 
       baseTileLayer.addTo(map);

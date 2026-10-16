@@ -347,20 +347,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (leafletMap.touchZoom) leafletMap.touchZoom.enable();
     if (leafletMap.doubleClickZoom) leafletMap.doubleClickZoom.enable();
 
-    // 100% Free, High-Resolution Esri World Street Map (Zero API Key, Zero Watermarks, Never Blocked)
-    const baseTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    // High-Resolution CartoDB Voyager & OpenStreetMap (Zero API Key, Zero Watermarks, Never Blocked, Never shows "Map data not yet available")
+    const baseTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
       maxZoom: 19,
-      attribution: '&copy; Esri &copy; OpenStreetMap contributors'
-    });
-
-    // Automatic failover to Google Maps tile mirror if Esri is unreachable
-    baseTileLayer.on('tileerror', function() {
-      console.info('Switching to Google Maps tile mirror...');
-      try { leafletMap.removeLayer(baseTileLayer); } catch(e) {}
-      L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-        maxZoom: 20,
-        attribution: '&copy; Google Maps'
-      }).addTo(leafletMap);
+      maxNativeZoom: 18,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
     });
 
     baseTileLayer.addTo(leafletMap);
@@ -821,8 +813,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateActiveNavigationHUD() {
     if (!state.isNavigating || !state.destination) return;
 
-    const riderLat = state.latitude || 19.2184;
-    const riderLng = state.longitude || 73.0867;
+    const riderLat = state.latitude;
+    const riderLng = state.longitude;
+    if (!riderLat || !riderLng) return;
 
     // 1. Check if rider has arrived at destination (< 25 meters)
     const distToDest = calcHaversineMeters(riderLat, riderLng, state.destination.lat, state.destination.lng);
@@ -958,10 +951,12 @@ document.addEventListener('DOMContentLoaded', () => {
     speakVoicePrompt('Recalculating route...');
     triggerHapticFeedback([150, 50, 150]);
 
+    if (!state.latitude || !state.longitude) return;
+
     try {
       await calculateAndDisplayRoadRoute(
-        state.latitude || 19.2184,
-        state.longitude || 73.0867,
+        state.latitude,
+        state.longitude,
         state.destination.lat,
         state.destination.lng,
         state.destination.name,
@@ -1063,8 +1058,33 @@ document.addEventListener('DOMContentLoaded', () => {
       leafletMap.panTo([lat, lng]);
     }
 
-    const curLat = state.latitude || 19.2184;
-    const curLng = state.longitude || 73.0867;
+    // Require real device GPS fix - NEVER route from hardcoded fake coordinates
+    let curLat = state.latitude;
+    let curLng = state.longitude;
+
+    if (!curLat || !curLng) {
+      if (els.navSelectedDesc) els.navSelectedDesc.textContent = 'Acquiring your real GPS location...';
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            handleNeoM8nLocationFix(pos);
+            curLat = pos.coords.latitude;
+            curLng = pos.coords.longitude;
+            await calculateAndDisplayRoadRoute(curLat, curLng, lat, lng, name);
+          },
+          (err) => {
+            console.warn('GPS location unavailable:', err);
+            if (els.navSelectedDesc) els.navSelectedDesc.textContent = 'Real GPS location required. Please enable location permissions.';
+            alert('Cannot calculate road route: device GPS location is not available. Please allow location permissions.');
+          },
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+        );
+        return;
+      } else {
+        alert('Geolocation is not supported by your browser or device.');
+        return;
+      }
+    }
 
     await calculateAndDisplayRoadRoute(curLat, curLng, lat, lng, name);
 
@@ -1122,10 +1142,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.guidanceDistanceVal) els.guidanceDistanceVal.textContent = 'Ready';
     if (els.guidanceEtaVal) els.guidanceEtaVal.textContent = 'Select Route';
 
-    const curLat = state.latitude || 19.2184;
-    const curLng = state.longitude || 73.0867;
-    if (leafletMap) {
-      leafletMap.setView([curLat, curLng], 15, { animate: true });
+    if (leafletMap && state.latitude && state.longitude) {
+      leafletMap.setView([state.latitude, state.longitude], 16, { animate: true });
     }
 
     speakVoicePrompt('Route cancelled.');
@@ -1136,10 +1154,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (routeLine && leafletMap) {
       leafletMap.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
       triggerHapticFeedback([30]);
-    } else if (leafletMap) {
-      const curLat = state.latitude || 19.2184;
-      const curLng = state.longitude || 73.0867;
-      leafletMap.setView([curLat, curLng], 15, { animate: true });
+    } else if (leafletMap && state.latitude && state.longitude) {
+      leafletMap.setView([state.latitude, state.longitude], 16, { animate: true });
     }
   }
 
@@ -1277,8 +1293,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = els.btnSearchDest || document.getElementById('btn-search-dest');
     if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
-    const curLat = state.latitude || 19.2184;
-    const curLng = state.longitude || 73.0867;
     const qLower = query.toLowerCase();
 
     // 2. Strict Local Landmark Match (No generic word hijacking)
@@ -1293,7 +1307,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Online Search via Photon API
     let onlineResults = [];
     try {
-      const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${curLat}&lon=${curLng}&limit=5`;
+      const latParam = (state.latitude && state.longitude) ? `&lat=${state.latitude}&lon=${state.longitude}` : '';
+      const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}${latParam}&limit=5`;
       const res = await fetch(photonUrl);
       if (res.ok) {
         const data = await res.json();
@@ -1476,19 +1491,15 @@ document.addEventListener('DOMContentLoaded', () => {
     state.hasGpsFix = isAcceptableFix;
     state.hdop = +(Math.max(0.7, accuracy / 4.0)).toFixed(2);
 
-    if (state.isBluetoothConnected || state.isHelmetOnline) {
-      // HELMET CONNECTED VIA BLUETOOTH -> Mobile Phone GPS acts as NEO-M8N GNSS Engine!
-      state.satellitesCount = isHighPrecision
-        ? Math.min(18, Math.max(7, Math.round(20 - state.hdop * 3)))
-        : (isAcceptableFix ? 8 : 0);
-
+    if (state.isBluetoothConnected && state.isHelmetOnline) {
+      // HELMET HARDWARE ONLINE & CONNECTED:
       if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'NEO-M8N GNSS';
       if (els.gpsFixStatus) {
         els.gpsFixStatus.textContent = isHighPrecision ? '3D Fix' : (isAcceptableFix ? 'GPS Active' : 'Acquiring Fix...');
         els.gpsFixStatus.className = isAcceptableFix ? 'value badge-success' : 'value badge-warning';
       }
       if (els.gpsSatellitesVal) {
-        els.gpsSatellitesVal.textContent = isAcceptableFix ? `${state.satellitesCount} Locked` : '0 Locked';
+        els.gpsSatellitesVal.textContent = state.satellitesCount > 0 ? `${state.satellitesCount} Locked` : '--';
       }
       if (els.gpsAccuracyVal) {
         els.gpsAccuracyVal.textContent = `± ${accuracy.toFixed(1)} m`;
@@ -1500,15 +1511,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.gpsLatVal) els.gpsLatVal.textContent = `${coords.latitude.toFixed(5)}° N`;
       if (els.gpsLngVal) els.gpsLngVal.textContent = `${coords.longitude.toFixed(5)}° E`;
     } else {
-      // HELMET DISCONNECTED -> Phone GPS active for navigation only, NEO-M8N on standby
+      // HELMET DISCONNECTED: Truthfully display Phone GPS - ZERO fabricated satellite numbers
       state.satellitesCount = 0;
       if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'Phone GPS (Nav)';
       if (els.gpsFixStatus) {
-        els.gpsFixStatus.textContent = isHighPrecision ? 'Phone: 3D Fix' : (isAcceptableFix ? 'Phone: GPS Fix' : 'Acquiring...');
+        els.gpsFixStatus.textContent = isHighPrecision ? 'Phone: High Precision' : (isAcceptableFix ? 'Phone: GPS Fix' : 'Acquiring Fix...');
         els.gpsFixStatus.className = isAcceptableFix ? 'value badge-success' : 'value badge-warning';
       }
       if (els.gpsSatellitesVal) {
-        els.gpsSatellitesVal.textContent = '-- (BT Standby)';
+        els.gpsSatellitesVal.textContent = '-- (Phone GPS)';
       }
       if (els.gpsAccuracyVal) {
         els.gpsAccuracyVal.textContent = `± ${accuracy.toFixed(1)} m`;
@@ -2174,10 +2185,9 @@ document.addEventListener('DOMContentLoaded', () => {
         els.gpsEngineTitle.textContent = 'NEO-M8N GNSS';
       }
       if (state.hasGpsFix) {
-        state.satellitesCount = Math.min(18, Math.max(7, Math.round(20 - (state.hdop || 2.0) * 3)));
-        if (els.gpsSatellitesVal) els.gpsSatellitesVal.textContent = `${state.satellitesCount} Locked`;
+        if (els.gpsSatellitesVal) els.gpsSatellitesVal.textContent = state.satellitesCount > 0 ? `${state.satellitesCount} Locked` : '--';
         if (els.neoHardwareBadge) {
-          els.neoHardwareBadge.textContent = 'Hardware Active (3D Fix)';
+          els.neoHardwareBadge.textContent = 'Hardware Active';
           els.neoHardwareBadge.className = 'status-pill status-pill-success';
         }
       }
