@@ -548,12 +548,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Update Turn Icon
       if (els.navTurnIcon) {
-        if (state.navigation.turnType === 'TURN_LEFT') {
-          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrow-turn-up fa-rotate-270"></i>';
-        } else if (state.navigation.turnType === 'TURN_RIGHT') {
-          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrow-turn-up fa-rotate-90"></i>';
-        } else if (state.navigation.turnType === 'STRAIGHT') {
-          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+        const t = state.navigation.turnType;
+        if (t === 'TURN_LEFT' || t === 'SLIGHT_LEFT' || t === 'SHARP_LEFT') {
+          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrow-turn-up fa-rotate-270" style="color:#3b82f6;"></i>';
+        } else if (t === 'TURN_RIGHT' || t === 'SLIGHT_RIGHT' || t === 'SHARP_RIGHT') {
+          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrow-turn-up" style="color:#3b82f6;"></i>';
+        } else if (t === 'UTURN') {
+          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrows-rotate" style="color:#eab308;"></i>';
+        } else if (t === 'ROUNDABOUT') {
+          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrows-spin" style="color:#8b5cf6;"></i>';
+        } else if (t === 'STRAIGHT') {
+          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrow-up" style="color:#10b981;"></i>';
         } else {
           els.navTurnIcon.innerHTML = '<i class="fa-solid fa-flag-checkered" style="color:#ef4444;"></i>';
         }

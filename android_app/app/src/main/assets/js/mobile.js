@@ -89,6 +89,20 @@ document.addEventListener('DOMContentLoaded', () => {
     navDistanceMeters: null,
     navEtaMinutes: null,
 
+    // Google Maps Style 3-Stage Active Navigation Engine
+    isNavigating: false,
+    navRouteSteps: [],
+    navStepIndex: 0,
+    navRouteCoords: [],
+    navRemainingMeters: 0,
+    navRemainingSeconds: 0,
+    isRecalculating: false,
+    offRouteCount: 0,
+    followRiderMode: true,
+    lastVoiceStepIndex: -1,
+    tripStartTimestamp: 0,
+    tripStartDistanceKm: 0,
+
     // Settings
     voiceEnabled: true,
     vibrationEnabled: true,
@@ -137,7 +151,8 @@ document.addEventListener('DOMContentLoaded', () => {
     chargingStatusText: document.getElementById('charging-status-text'),
     btnSosTrigger: document.getElementById('btn-sos-trigger'),
 
-    // Navigation View
+    // Navigation View & Google Maps Style HUD
+    guidanceBanner: document.getElementById('guidance-banner'),
     guidanceDistanceVal: document.getElementById('guidance-distance-val'),
     guidanceEtaVal: document.getElementById('guidance-eta-val'),
     guidanceInstructionText: document.getElementById('guidance-instruction-text'),
@@ -158,6 +173,32 @@ document.addEventListener('DOMContentLoaded', () => {
     navStatEta: document.getElementById('nav-stat-eta'),
     btnFitRoute: document.getElementById('btn-fit-route'),
     btnCancelRoute: document.getElementById('btn-cancel-route'),
+    btnStartNav: document.getElementById('btn-start-nav'),
+    cardDestSelection: document.getElementById('card-dest-selection'),
+
+    // Active Navigation Turn HUD & Cockpit
+    navActiveTurnBanner: document.getElementById('nav-active-turn-banner'),
+    activeTurnIcon: document.getElementById('active-turn-icon'),
+    activeTurnDist: document.getElementById('active-turn-dist'),
+    activeTurnInstruction: document.getElementById('active-turn-instruction'),
+    activeThenPreview: document.getElementById('active-then-preview'),
+    activeThenText: document.getElementById('active-then-text'),
+    btnRepeatTurnVoice: document.getElementById('btn-repeat-turn-voice'),
+    navRecalculatingPill: document.getElementById('nav-recalculating-pill'),
+    navActiveCockpit: document.getElementById('nav-active-cockpit'),
+    cockpitEtaTime: document.getElementById('cockpit-eta-time'),
+    cockpitEtaMins: document.getElementById('cockpit-eta-mins'),
+    cockpitDistRem: document.getElementById('cockpit-dist-rem'),
+    cockpitSpeedSnap: document.getElementById('cockpit-speed-snap'),
+    btnNavFollow: document.getElementById('btn-nav-follow'),
+    btnStopNav: document.getElementById('btn-stop-nav'),
+
+    // Destination Arrival Modal
+    navArrivalModal: document.getElementById('nav-arrival-modal'),
+    arrivalDestName: document.getElementById('arrival-dest-name'),
+    arrivalTripDist: document.getElementById('arrival-trip-dist'),
+    arrivalAvgSpeed: document.getElementById('arrival-avg-speed'),
+    btnCloseArrival: document.getElementById('btn-close-arrival'),
 
     // GPS Telemetry View
     gpsLatVal: document.getElementById('gps-lat-val'),
@@ -406,9 +447,140 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ============================================================================
-  // REAL ROAD ROUTING VIA OSRM DRIVING ENGINE
+  // GEOSPATIAL HELPER FUNCTIONS (Haversine & Road Snapping / Sensor Fusion)
   // ============================================================================
-  async function calculateAndDisplayRoadRoute(curLat, curLng, destLat, destLng, destName) {
+  function calcHaversineMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  function snapPointToSegment(pLat, pLng, aLat, aLng, bLat, bLng) {
+    const cosLat = Math.cos(aLat * Math.PI / 180);
+    const dx = (bLng - aLng) * 111320 * cosLat;
+    const dy = (bLat - aLat) * 110540;
+    const segLenSq = dx * dx + dy * dy;
+
+    if (segLenSq === 0) {
+      return { lat: aLat, lng: aLng, distMeters: calcHaversineMeters(pLat, pLng, aLat, aLng) };
+    }
+
+    const px = (pLng - aLng) * 111320 * cosLat;
+    const py = (pLat - aLat) * 110540;
+    let t = (px * dx + py * dy) / segLenSq;
+    t = Math.max(0, Math.min(1, t));
+
+    const snappedLat = aLat + t * (bLat - aLat);
+    const snappedLng = aLng + t * (bLng - aLng);
+    const distMeters = calcHaversineMeters(pLat, pLng, snappedLat, snappedLng);
+
+    return { lat: snappedLat, lng: snappedLng, distMeters: distMeters, t: t };
+  }
+
+  function snapToActiveRoute(lat, lng, routeCoords) {
+    if (!routeCoords || routeCoords.length < 2) return { lat, lng, distMeters: 0, snapped: false };
+    let best = null;
+    let minDistance = Infinity;
+
+    for (let i = 0; i < routeCoords.length - 1; i++) {
+      const a = routeCoords[i];
+      const b = routeCoords[i + 1];
+      const proj = snapPointToSegment(lat, lng, a[0], a[1], b[0], b[1]);
+      if (proj.distMeters < minDistance) {
+        minDistance = proj.distMeters;
+        best = proj;
+        best.segmentIndex = i;
+      }
+    }
+
+    // Within 35 meters: snap to road centerline (Sensor Fusion)
+    if (best && minDistance <= 35.0) {
+      return {
+        lat: best.lat,
+        lng: best.lng,
+        distMeters: minDistance,
+        snapped: true,
+        segmentIndex: best.segmentIndex
+      };
+    }
+
+    return {
+      lat: lat,
+      lng: lng,
+      distMeters: minDistance,
+      snapped: false,
+      segmentIndex: best ? best.segmentIndex : 0
+    };
+  }
+
+  function getManeuverDetails(step) {
+    if (!step) return { icon: 'fa-location-arrow', text: 'Follow road', turnType: 'STRAIGHT' };
+    const m = step.maneuver || {};
+    const mod = (m.modifier || '').toLowerCase();
+    const type = (m.type || '').toLowerCase();
+    const name = step.name ? ` onto ${step.name}` : '';
+
+    let icon = 'fa-arrow-up';
+    let text = `Continue straight${name}`;
+    let turnType = 'STRAIGHT';
+
+    if (type === 'arrive' || type === 'destination') {
+      return { icon: 'fa-flag-checkered', text: `Arrive at ${step.name || 'destination'}`, turnType: 'DESTINATION' };
+    }
+    if (mod.includes('left')) {
+      if (mod.includes('slight')) {
+        icon = 'fa-arrow-turn-up fa-rotate-270';
+        text = `Slight left${name}`;
+        turnType = 'SLIGHT_LEFT';
+      } else if (mod.includes('sharp')) {
+        icon = 'fa-reply';
+        text = `Sharp left${name}`;
+        turnType = 'SHARP_LEFT';
+      } else {
+        icon = 'fa-arrow-turn-up fa-rotate-270';
+        text = `Turn left${name}`;
+        turnType = 'TURN_LEFT';
+      }
+    } else if (mod.includes('right')) {
+      if (mod.includes('slight')) {
+        icon = 'fa-arrow-turn-up';
+        text = `Slight right${name}`;
+        turnType = 'SLIGHT_RIGHT';
+      } else if (mod.includes('sharp')) {
+        icon = 'fa-share';
+        text = `Sharp right${name}`;
+        turnType = 'SHARP_RIGHT';
+      } else {
+        icon = 'fa-arrow-turn-up';
+        text = `Turn right${name}`;
+        turnType = 'TURN_RIGHT';
+      }
+    } else if (mod.includes('uturn') || type.includes('uturn')) {
+      icon = 'fa-arrows-rotate';
+      text = `Make a U-turn${name}`;
+      turnType = 'UTURN';
+    } else if (type.includes('roundabout') || type.includes('rotary')) {
+      icon = 'fa-arrows-spin';
+      text = `Enter roundabout${name}`;
+      turnType = 'ROUNDABOUT';
+    } else if (type.includes('fork')) {
+      icon = mod.includes('left') ? 'fa-code-branch fa-flip-horizontal' : 'fa-code-branch';
+      text = `Take fork ${mod}${name}`;
+      turnType = 'FORK';
+    }
+
+    return { icon, text, turnType };
+  }
+
+  // ============================================================================
+  // STAGE 2: REAL ROAD ROUTING VIA OSRM DRIVING ENGINE (Graph Theory / A*)
+  // ============================================================================
+  async function calculateAndDisplayRoadRoute(curLat, curLng, destLat, destLng, destName, isRecalculation = false) {
     let routeData = null;
 
     // 1. Direct fetch to public OSRM Driving Engine
@@ -447,44 +619,68 @@ document.addEventListener('DOMContentLoaded', () => {
     let distKm = '0.0';
     let etaMins = 1;
     let firstInstruction = `Follow road to ${destName}`;
+    let firstTurnType = 'STRAIGHT';
 
     if (routeData) {
-      // Convert OSRM GeoJSON [lon, lat] coordinates to Leaflet [lat, lon]
       latLngs = routeData.geometry.coordinates.map(coord => [coord[1], coord[0]]);
       distKm = (routeData.distance / 1000).toFixed(1);
       etaMins = Math.max(1, Math.round(routeData.duration / 60));
 
-      if (routeData.legs && routeData.legs[0] && routeData.legs[0].steps && routeData.legs[0].steps.length > 1) {
-        const step = routeData.legs[0].steps[1] || routeData.legs[0].steps[0];
-        const modifier = step.maneuver ? (step.maneuver.modifier || step.maneuver.type) : '';
-        const stepDist = Math.round(step.distance);
-        const street = step.name ? ` onto ${step.name}` : '';
-        if (modifier && modifier !== 'straight') {
-          firstInstruction = `In ${stepDist} m turn ${modifier}${street}`;
+      state.navRouteCoords = latLngs;
+      state.navRouteSteps = (routeData.legs && routeData.legs[0] && routeData.legs[0].steps) ? routeData.legs[0].steps : [];
+      state.navRemainingMeters = routeData.distance;
+      state.navRemainingSeconds = routeData.duration;
+      state.navDistanceMeters = routeData.distance;
+      state.navEtaMinutes = etaMins;
+
+      if (state.navRouteSteps.length > 0) {
+        const firstStep = state.navRouteSteps[1] || state.navRouteSteps[0];
+        const stepDetails = getManeuverDetails(firstStep);
+        const stepDist = Math.round(firstStep.distance || 0);
+        firstTurnType = stepDetails.turnType;
+        if (firstStep.maneuver && firstStep.maneuver.modifier && firstStep.maneuver.modifier !== 'straight') {
+          firstInstruction = `In ${stepDist} m ${stepDetails.text}`;
         } else {
-          firstInstruction = `In ${stepDist} m continue straight${street}`;
+          firstInstruction = `In ${stepDist} m continue straight${firstStep.name ? ' onto ' + firstStep.name : ''}`;
         }
       }
     } else {
-      // Fallback straight line
       latLngs = [[curLat, curLng], [destLat, destLng]];
-      const dLat = (destLat - curLat) * Math.PI / 180;
-      const dLon = (destLng - curLng) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(curLat * Math.PI / 180) * Math.cos(destLat * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      distKm = (6371 * c).toFixed(1);
+      const distM = calcHaversineMeters(curLat, curLng, destLat, destLng);
+      distKm = (distM / 1000).toFixed(1);
       etaMins = Math.max(1, Math.round((parseFloat(distKm) / 25) * 60));
       firstInstruction = `Head towards ${destName}`;
+      firstTurnType = 'STRAIGHT';
+
+      state.navRouteCoords = latLngs;
+      state.navRouteSteps = [
+        {
+          distance: distM,
+          duration: etaMins * 60,
+          name: destName,
+          maneuver: { type: 'depart', modifier: 'straight', location: [destLng, destLat] }
+        },
+        {
+          distance: 0,
+          duration: 0,
+          name: destName,
+          maneuver: { type: 'arrive', modifier: '', location: [destLng, destLat] }
+        }
+      ];
+      state.navRemainingMeters = distM;
+      state.navRemainingSeconds = etaMins * 60;
+      state.navDistanceMeters = distM;
+      state.navEtaMinutes = etaMins;
     }
+
+    state.navInstruction = firstInstruction;
+    state.currentTurnType = firstTurnType;
 
     // Draw Real Road Polyline on Map
     if (routeHalo && leafletMap) leafletMap.removeLayer(routeHalo);
     if (routeLine && leafletMap) leafletMap.removeLayer(routeLine);
 
     if (leafletMap) {
-      // Route casing/halo (subtle border)
       routeHalo = L.polyline(latLngs, {
         color: '#1d4ed8',
         weight: 8,
@@ -493,20 +689,20 @@ document.addEventListener('DOMContentLoaded', () => {
         lineCap: 'round'
       }).addTo(leafletMap);
 
-      // Main vibrant road line
       routeLine = L.polyline(latLngs, {
-        color: '#3b82f6',
-        weight: 5,
+        color: state.isNavigating ? '#10b981' : '#3b82f6',
+        weight: 6,
         opacity: 1.0,
         lineJoin: 'round',
         lineCap: 'round'
       }).addTo(leafletMap);
 
-      // Fit map viewport to encompass the entire route
-      leafletMap.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+      if (!state.isNavigating) {
+        leafletMap.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+      }
     }
 
-    // Update HUD & Details Card
+    // Update Preview HUD & Details Card
     if (els.guidanceDistanceVal) els.guidanceDistanceVal.textContent = `${distKm} km`;
     if (els.guidanceEtaVal) els.guidanceEtaVal.textContent = `ETA: ${etaMins} mins`;
     if (els.guidanceInstructionText) els.guidanceInstructionText.textContent = firstInstruction;
@@ -515,105 +711,277 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.navStatEta) els.navStatEta.textContent = `${etaMins} mins`;
     if (els.navSelectedDesc) els.navSelectedDesc.textContent = `${distKm} km road distance • ~${etaMins} mins travel time`;
 
-    speakVoicePrompt(`Route planned via road to ${destName}. Distance: ${distKm} kilometers, ETA: ${etaMins} minutes.`);
+    if (isRecalculation) {
+      speakVoicePrompt(`New route found. ${firstInstruction}.`);
+      updateActiveNavigationHUD();
+    } else if (!state.isNavigating) {
+      speakVoicePrompt(`Route found to ${destName}. Distance: ${distKm} kilometers, ETA: ${etaMins} minutes. Tap Start Navigation to begin.`);
+    }
 
     // Sync active road route to Django backend & Browser Dashboard!
-    syncDestinationToBackend(destLat, destLng, destName, true, parseFloat(distKm), etaMins, firstInstruction);
+    syncDestinationToBackend(destLat, destLng, destName, true, parseFloat(distKm), etaMins, firstInstruction, firstTurnType);
   }
 
-  // Sync Destination to Backend & Browser Dashboard in Real-Time
-  async function syncDestinationToBackend(lat, lng, name, active = true, distKm = 0.0, etaMins = 0, instruction = '') {
-    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
+  // ============================================================================
+  // STAGE 3: HITTING "START" — ACTIVE TURN-BY-TURN HUD & LIVE SENSOR TRACKING
+  // ============================================================================
+  function startActiveNavigation() {
+    if (!state.destination || !state.navRouteCoords || state.navRouteCoords.length < 2) {
+      alert('Please select a destination first to plan a road route.');
+      return;
+    }
+
+    state.isNavigating = true;
+    state.followRiderMode = true;
+    state.navStepIndex = 0;
+    state.lastVoiceStepIndex = -1;
+    state.tripStartTimestamp = Date.now();
+    state.tripStartDistanceKm = state.totalDistanceKm;
+
+    // Transform polyline color to active green navigation highway
+    if (routeLine) {
+      routeLine.setStyle({ color: '#10b981', weight: 7 });
+    }
+
+    // UI Transformation
+    if (els.guidanceBanner) els.guidanceBanner.classList.add('hidden');
+    if (els.navActiveTurnBanner) els.navActiveTurnBanner.classList.remove('hidden');
+    if (els.navActiveCockpit) els.navActiveCockpit.classList.remove('hidden');
+    if (els.cardDestSelection) els.cardDestSelection.classList.add('hidden');
+
+    triggerHapticFeedback([100, 50, 100]);
+
+    // Initial voice prompt
+    const firstStep = state.navRouteSteps[0] || {};
+    const details = getManeuverDetails(firstStep);
+    speakVoicePrompt(`Starting navigation to ${state.destination.name}. ${state.navInstruction || details.text}`);
+
+    // Center map on rider at zoom 17
+    if (leafletMap && state.latitude && state.longitude) {
+      leafletMap.setView([state.latitude, state.longitude], 17, { animate: true });
+    }
+
+    // Refresh HUD
+    updateActiveNavigationHUD();
+
+    // Sync active state to backend
+    syncDestinationToBackend(
+      state.destination.lat,
+      state.destination.lng,
+      state.destination.name,
+      true,
+      parseFloat((state.navRemainingMeters / 1000).toFixed(1)),
+      state.navEtaMinutes || 1,
+      state.navInstruction,
+      state.currentTurnType
+    );
+  }
+
+  function stopActiveNavigation(arrived = false) {
+    state.isNavigating = false;
+    state.followRiderMode = false;
+
+    // Reset polyline color
+    if (routeLine) {
+      routeLine.setStyle({ color: '#3b82f6', weight: 5 });
+    }
+
+    // UI Updates
+    if (els.navActiveTurnBanner) els.navActiveTurnBanner.classList.add('hidden');
+    if (els.navActiveCockpit) els.navActiveCockpit.classList.add('hidden');
+    if (els.cardDestSelection) els.cardDestSelection.classList.remove('hidden');
+    if (els.guidanceBanner) els.guidanceBanner.classList.remove('hidden');
+
+    if (!arrived) {
+      speakVoicePrompt('Navigation ended.');
+      triggerHapticFeedback([40]);
+    }
+
+    // Restore map overview
+    if (routeLine && leafletMap) {
+      leafletMap.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+    }
+
+    // Sync to backend
+    if (!arrived && state.destination) {
+      syncDestinationToBackend(
+        state.destination.lat,
+        state.destination.lng,
+        state.destination.name,
+        true,
+        parseFloat((state.navRemainingMeters / 1000).toFixed(1)),
+        state.navEtaMinutes || 1,
+        'Navigation paused / overview',
+        'DESTINATION'
+      );
+    }
+  }
+
+  // Active Navigation HUD Updater (Called on each GPS / Snapped Fix)
+  function updateActiveNavigationHUD() {
+    if (!state.isNavigating || !state.destination) return;
+
+    const riderLat = state.latitude || 19.2184;
+    const riderLng = state.longitude || 73.0867;
+
+    // 1. Check if rider has arrived at destination (< 25 meters)
+    const distToDest = calcHaversineMeters(riderLat, riderLng, state.destination.lat, state.destination.lng);
+    if (distToDest <= 25.0) {
+      handleDestinationArrival();
+      return;
+    }
+
+    // 2. Get current active step
+    const steps = state.navRouteSteps;
+    if (!steps || steps.length === 0) return;
+
+    let currentStep = steps[state.navStepIndex] || steps[steps.length - 1];
+    let nextStep = steps[state.navStepIndex + 1];
+
+    // Distance to current maneuver
+    let distToManeuver = 0;
+    if (currentStep.maneuver && currentStep.maneuver.location) {
+      const stepLon = currentStep.maneuver.location[0];
+      const stepLat = currentStep.maneuver.location[1];
+      distToManeuver = calcHaversineMeters(riderLat, riderLng, stepLat, stepLon);
+    } else {
+      distToManeuver = distToDest;
+    }
+
+    // Step advancement: If rider has reached this turn maneuver (< 20m)
+    if (distToManeuver <= 20.0 && state.navStepIndex < steps.length - 1) {
+      state.navStepIndex++;
+      currentStep = steps[state.navStepIndex];
+      nextStep = steps[state.navStepIndex + 1];
+
+      const details = getManeuverDetails(currentStep);
+      speakVoicePrompt(details.text);
+      triggerHapticFeedback([70]);
+    }
+
+    // Maneuver icon & text
+    const currentDetails = getManeuverDetails(currentStep);
+    if (els.activeTurnIcon) {
+      els.activeTurnIcon.className = `fa-solid ${currentDetails.icon}`;
+    }
+
+    // Format distance string
+    const distStr = distToManeuver >= 1000
+      ? `${(distToManeuver / 1000).toFixed(1)} km`
+      : `${Math.round(distToManeuver)} m`;
+
+    if (els.activeTurnDist) els.activeTurnDist.textContent = `In ${distStr}`;
+    if (els.activeTurnInstruction) els.activeTurnInstruction.textContent = currentDetails.text;
+
+    // Preview of the next instruction ("Then ...")
+    if (els.activeThenPreview && els.activeThenText) {
+      if (nextStep) {
+        const nextDetails = getManeuverDetails(nextStep);
+        const nextDistStr = nextStep.distance >= 1000
+          ? `${(nextStep.distance / 1000).toFixed(1)} km`
+          : `${Math.round(nextStep.distance)} m`;
+        els.activeThenText.textContent = `Then ${nextDetails.text} (${nextDistStr})`;
+        els.activeThenPreview.classList.remove('hidden');
+      } else {
+        els.activeThenText.textContent = `Destination is approaching`;
+        els.activeThenPreview.classList.remove('hidden');
+      }
+    }
+
+    // Voice announcement countdown (at ~80 meters from turn)
+    if (distToManeuver <= 85 && distToManeuver > 25 && state.lastVoiceStepIndex !== state.navStepIndex) {
+      state.lastVoiceStepIndex = state.navStepIndex;
+      speakVoicePrompt(`In ${Math.round(distToManeuver)} meters, ${currentDetails.text}`);
+    }
+
+    // Dynamic ETA calculation
+    const totalRemKm = Math.max(0.1, distToDest / 1000);
+    const speedKmh = Math.max(state.speedKmH || 0, 15.0); // assume min 15 km/h for ETA
+    const etaMins = Math.max(1, Math.round((totalRemKm / speedKmh) * 60));
+
+    const arrivalDate = new Date(Date.now() + etaMins * 60000);
+    const etaTimeString = arrivalDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    if (els.cockpitEtaTime) els.cockpitEtaTime.textContent = etaTimeString;
+    if (els.cockpitEtaMins) els.cockpitEtaMins.textContent = `${etaMins} min`;
+    if (els.cockpitDistRem) els.cockpitDistRem.textContent = `${totalRemKm.toFixed(1)} km`;
+    if (els.cockpitSpeedSnap) els.cockpitSpeedSnap.textContent = `${Math.round(state.speedKmH)} km/h`;
+
+    state.navInstruction = `In ${distStr}: ${currentDetails.text}`;
+    state.currentTurnType = currentDetails.turnType;
+
+    // Sync to backend for browser dashboard
+    syncDestinationToBackend(
+      state.destination.lat,
+      state.destination.lng,
+      state.destination.name,
+      true,
+      parseFloat(totalRemKm.toFixed(1)),
+      etaMins,
+      `In ${distStr}: ${currentDetails.text}`,
+      currentDetails.turnType
+    );
+  }
+
+  // Handle Destination Arrival
+  function handleDestinationArrival() {
+    stopActiveNavigation(true);
+
+    if (window.audioEngine && window.audioEngine.speakDestinationReached) {
+      window.audioEngine.speakDestinationReached();
+    } else {
+      speakVoicePrompt(`You have arrived at your destination: ${state.destination ? state.destination.name : 'Destination'}. Navigation complete. Safe riding!`);
+    }
+    triggerHapticFeedback([100, 50, 100, 50, 200]);
+
+    // Trip statistics
+    const tripDist = Math.max(0.1, state.totalDistanceKm - state.tripStartDistanceKm).toFixed(1);
+    const tripDurationHours = (Date.now() - (state.tripStartTimestamp || Date.now())) / 3600000;
+    const avgSpeed = tripDurationHours > 0.005 ? (parseFloat(tripDist) / tripDurationHours).toFixed(1) : '24.0';
+
+    if (els.arrivalDestName) els.arrivalDestName.textContent = state.destination ? state.destination.name : 'Selected Location';
+    if (els.arrivalTripDist) els.arrivalTripDist.textContent = `${tripDist} km`;
+    if (els.arrivalAvgSpeed) els.arrivalAvgSpeed.textContent = `${avgSpeed} km/h`;
+
+    if (els.navArrivalModal) els.navArrivalModal.classList.remove('hidden');
+
+    clearDestination();
+  }
+
+  // Continuous Re-routing (Off-Route Detection)
+  async function triggerRecalculateRoute() {
+    if (state.isRecalculating || !state.destination || !state.isNavigating) return;
+    state.isRecalculating = true;
+    state.offRouteCount = 0;
+
+    if (els.navRecalculatingPill) els.navRecalculatingPill.classList.remove('hidden');
+    speakVoicePrompt('Recalculating route...');
+    triggerHapticFeedback([150, 50, 150]);
+
     try {
-      await fetch(`${baseUrl}/api/navigation/destination/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({
-          active: active,
-          destinationName: name,
-          destLat: lat,
-          destLng: lng,
-          distanceKm: distKm,
-          etaMinutes: etaMins,
-          instruction: instruction,
-          latitude: state.latitude,
-          longitude: state.longitude,
-          source: 'mobile_app'
-        })
-      });
-    } catch (e) {
-      console.warn('Failed to sync destination to backend:', e);
-    }
-  }
-
-  // Set Destination (from Map Click or Search)
-  async function setDestination(lat, lng, name = 'Selected Location') {
-    state.destination = { name, lat, lng };
-
-    // Update or create destination marker
-    if (destMarker && leafletMap) {
-      destMarker.setLatLng([lat, lng]);
-      destMarker.setPopupContent(`<b>${name}</b><br><small style="color:#64748b;">Drag pin to pinpoint exact gate/entrance</small>`);
-    } else if (leafletMap) {
-      const destPinHtml = `
-        <div style="position:relative; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:grab;">
-          <div style="position:absolute; width:14px; height:14px; border-radius:50%; background:rgba(239,68,68,0.4); animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></div>
-          <div style="width:30px; height:30px; border-radius:50%; background:#ef4444; border:3px solid #ffffff; box-shadow:0 3px 10px rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px;">
-            <i class="fa-solid fa-flag"></i>
-          </div>
-        </div>
-      `;
-      const destIcon = L.divIcon({
-        html: destPinHtml,
-        className: 'dest-pin-icon',
-        iconSize: [34, 34],
-        iconAnchor: [17, 30]
-      });
-      destMarker = L.marker([lat, lng], {
-        icon: destIcon,
-        draggable: true,
-        autoPan: true
-      }).addTo(leafletMap);
-
-      destMarker.bindPopup(`<b>${name}</b><br><small style="color:#64748b;">Drag pin to pinpoint exact gate/entrance</small>`);
-
-      destMarker.on('dragend', (e) => {
-        const newPos = e.target.getLatLng();
-        setDestination(newPos.lat, newPos.lng, state.destination ? state.destination.name : 'Custom Pinpoint');
-      });
-    }
-
-    // Show Active Destination Card
-    if (els.navStatusEmpty) els.navStatusEmpty.classList.add('hidden');
-    if (els.navSelectedCard) els.navSelectedCard.classList.remove('hidden');
-    if (els.btnClearRouteHeader) els.btnClearRouteHeader.classList.remove('hidden');
-    if (els.navSelectedName) els.navSelectedName.textContent = name;
-    if (els.navSelectedDesc) els.navSelectedDesc.textContent = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)} • Calculating road path...`;
-    if (els.navStatDist) els.navStatDist.textContent = 'Calculating...';
-    if (els.navStatEta) els.navStatEta.textContent = 'Calculating...';
-
-    const curLat = state.latitude || 19.2184;
-    const curLng = state.longitude || 73.0867;
-
-    await calculateAndDisplayRoadRoute(curLat, curLng, lat, lng, name);
-
-    // If generic "Selected Location", resolve actual street or landmark via reverse geocoding
-    if (name === 'Selected Location') {
-      reverseGeocode(lat, lng).then(resolved => {
-        if (resolved && state.destination && state.destination.lat === lat && state.destination.lng === lng) {
-          state.destination.name = resolved;
-          if (els.navSelectedName) els.navSelectedName.textContent = resolved;
-          syncDestinationToBackend(lat, lng, resolved, true, parseFloat(state.navDistanceMeters ? (state.navDistanceMeters/1000).toFixed(1) : 0), state.navEtaMinutes || 0, state.navInstruction);
-        }
-      });
+      await calculateAndDisplayRoadRoute(
+        state.latitude || 19.2184,
+        state.longitude || 73.0867,
+        state.destination.lat,
+        state.destination.lng,
+        state.destination.name,
+        true // isRecalculation
+      );
+    } catch(e) {
+      console.warn('Re-routing error:', e);
+    } finally {
+      setTimeout(() => {
+        state.isRecalculating = false;
+        if (els.navRecalculatingPill) els.navRecalculatingPill.classList.add('hidden');
+      }, 1500);
     }
   }
 
   // Clear Destination / Cancel Navigation
   function clearDestination() {
+    if (state.isNavigating) {
+      stopActiveNavigation(false);
+    }
     state.destination = null;
 
     // Notify backend & browser dashboard that destination was cleared
@@ -688,6 +1056,27 @@ document.addEventListener('DOMContentLoaded', () => {
   if (els.btnCancelRoute) els.btnCancelRoute.onclick = clearDestination;
   if (els.btnClearRouteHeader) els.btnClearRouteHeader.onclick = clearDestination;
   if (els.btnFitRoute) els.btnFitRoute.onclick = fitRoute;
+  if (els.btnStartNav) els.btnStartNav.onclick = startActiveNavigation;
+  if (els.btnStopNav) els.btnStopNav.onclick = () => stopActiveNavigation(false);
+  if (els.btnNavFollow) {
+    els.btnNavFollow.onclick = () => {
+      state.followRiderMode = true;
+      if (leafletMap && state.latitude && state.longitude) {
+        leafletMap.setView([state.latitude, state.longitude], 17, { animate: true });
+      }
+      triggerHapticFeedback([30]);
+    };
+  }
+  if (els.btnRepeatTurnVoice) {
+    els.btnRepeatTurnVoice.onclick = () => {
+      if (state.navInstruction) speakVoicePrompt(state.navInstruction);
+    };
+  }
+  if (els.btnCloseArrival) {
+    els.btnCloseArrival.onclick = () => {
+      if (els.navArrivalModal) els.navArrivalModal.classList.add('hidden');
+    };
+  }
 
   // Known Maharashtra / Dombivli / Kalyan / Mumbai landmarks database for instant zero-latency offline resolution
   const LOCAL_LANDMARKS = [
@@ -1058,13 +1447,41 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.gpsAltVal) els.gpsAltVal.textContent = `${state.altitudeMeters} meters`;
     }
 
-    // Map Position Update (Marker moves smoothly without hijacking manual map dragging)
+    // Map Position Update & Sensor Fusion Road-Snapping
     if (leafletMap && riderMarker) {
-      riderMarker.setLatLng([state.latitude, state.longitude]);
-      if (!mapHasBeenCenteredInitially) {
-        leafletMap.setView([state.latitude, state.longitude], 16);
-        mapHasBeenCenteredInitially = true;
+      let displayLat = state.latitude;
+      let displayLng = state.longitude;
+
+      if (state.isNavigating && state.navRouteCoords && state.navRouteCoords.length > 1) {
+        // Sensor Fusion: Map matching snapping to road centerline
+        const match = snapToActiveRoute(state.latitude, state.longitude, state.navRouteCoords);
+        if (match.snapped) {
+          displayLat = match.lat;
+          displayLng = match.lng;
+          state.offRouteCount = 0;
+        } else if (match.distMeters > 50.0) {
+          // Off-route detected (> 50m perpendicular drift)
+          state.offRouteCount++;
+          if (state.offRouteCount >= 3 && !state.isRecalculating) {
+            triggerRecalculateRoute();
+          }
+        }
       }
+
+      riderMarker.setLatLng([displayLat, displayLng]);
+
+      if (!mapHasBeenCenteredInitially) {
+        leafletMap.setView([displayLat, displayLng], 16);
+        mapHasBeenCenteredInitially = true;
+      } else if (state.isNavigating && state.followRiderMode) {
+        // Smooth camera follow in active navigation mode
+        leafletMap.panTo([displayLat, displayLng], { animate: true, duration: 0.6 });
+      }
+    }
+
+    // Run active turn-by-turn guidance and dynamic ETA calculation
+    if (state.isNavigating) {
+      updateActiveNavigationHUD();
     }
 
     // Update Live NMEA Sentences
@@ -1078,7 +1495,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function syncMobileGpsToBackend() {
     if (!state.latitude || !state.longitude) return;
     const now = Date.now();
-    if (now - lastMobileGpsSyncMs < 2500) return;
+    if (now - lastMobileGpsSyncMs < 2000) return;
     lastMobileGpsSyncMs = now;
 
     const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
@@ -1099,9 +1516,14 @@ document.addEventListener('DOMContentLoaded', () => {
         satellites: state.satellitesCount,
         fix: state.hasGpsFix,
         navActive: Boolean(state.destination),
+        isNavigating: state.isNavigating,
         destinationName: state.destination ? state.destination.name : '',
         destLat: state.destination ? state.destination.lat : null,
-        destLng: state.destination ? state.destination.lng : null
+        destLng: state.destination ? state.destination.lng : null,
+        distanceKm: state.navRemainingMeters ? +(state.navRemainingMeters / 1000).toFixed(1) : 0.0,
+        etaMinutes: state.navEtaMinutes || 1,
+        instruction: state.navInstruction || '',
+        turnType: state.currentTurnType || 'DESTINATION'
       })
     }).catch(() => {});
   }

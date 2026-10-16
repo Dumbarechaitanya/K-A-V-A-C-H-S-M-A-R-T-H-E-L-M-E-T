@@ -176,7 +176,24 @@
     <!-- ============================================== -->
     <section class="tab-pane" id="pane-navigation">
 
-      <!-- Turn Guidance Instruction Banner -->
+      <!-- Active Highway Turn Guidance HUD Banner (Visible when Navigating) -->
+      <div class="nav-active-turn-banner hidden" id="nav-active-turn-banner">
+        <div class="active-turn-icon-wrap" id="active-turn-icon-wrap">
+          <i class="fa-solid fa-arrow-turn-up" id="active-turn-icon"></i>
+        </div>
+        <div class="active-turn-meta">
+          <div class="active-turn-dist" id="active-turn-dist">In 150 m</div>
+          <div class="active-turn-instruction" id="active-turn-instruction">Turn right onto Kalyan-Shilphata Rd</div>
+          <div class="active-then-preview" id="active-then-preview">
+            <i class="fa-solid fa-arrow-up"></i> <span id="active-then-text">Then continue for 1.2 km</span>
+          </div>
+        </div>
+        <button class="btn-audio-repeat" id="btn-repeat-turn-voice" title="Repeat Voice Direction">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
+
+      <!-- Preview Instruction Banner (Visible when Route Selected but NOT yet started) -->
       <div class="card guidance-card" id="guidance-banner">
         <div class="guidance-icon-box">
           <i class="fa-solid fa-location-arrow" id="guidance-arrow-icon"></i>
@@ -199,6 +216,10 @@
         <div class="map-hint-floating" id="map-hint-floating">
           <i class="fa-solid fa-hand-pointer"></i> Tap map to set destination
         </div>
+        <!-- Recalculating Floating Alert Pill -->
+        <div class="recalculating-pill hidden" id="nav-recalculating-pill">
+          <i class="fa-solid fa-arrows-rotate fa-spin"></i> Recalculating route...
+        </div>
         <div class="map-controls-floating">
           <button class="map-btn" id="btn-center-map" title="Center on Current Position">
             <i class="fa-solid fa-location-crosshairs"></i>
@@ -212,8 +233,29 @@
         </div>
       </div>
 
+      <!-- Live Driving Cockpit Bar (Active during Turn-by-Turn Navigation) -->
+      <div class="nav-active-cockpit hidden" id="nav-active-cockpit">
+        <div class="cockpit-stats">
+          <div class="cockpit-eta-row">
+            <span class="cockpit-eta-time" id="cockpit-eta-time">--:--</span>
+            <span class="cockpit-eta-mins" id="cockpit-eta-mins">-- min</span>
+          </div>
+          <div class="cockpit-sub-row">
+            <span id="cockpit-dist-rem">-- km</span> • <span id="cockpit-speed-snap">0 km/h</span>
+          </div>
+        </div>
+        <div class="cockpit-actions">
+          <button class="btn-nav-recenter" id="btn-nav-follow" title="Follow Rider Bearing">
+            <i class="fa-solid fa-location-crosshairs"></i>
+          </button>
+          <button class="btn-stop-navigation" id="btn-stop-nav" title="Exit Navigation">
+            <i class="fa-solid fa-xmark"></i> Stop
+          </button>
+        </div>
+      </div>
+
       <!-- Destination Selection & Road Route Card -->
-      <div class="card">
+      <div class="card" id="card-dest-selection">
         <div class="card-header-row">
           <h3 class="card-title"><i class="fa-solid fa-route"></i> Destination &amp; Road Route</h3>
           <button id="btn-clear-route-header" class="btn-clear-dest hidden" title="Clear Destination">
@@ -258,8 +300,11 @@
               </div>
             </div>
             <div class="nav-selected-buttons">
+              <button id="btn-start-nav" class="btn-action-start">
+                <i class="fa-solid fa-play"></i> Start Navigation
+              </button>
               <button id="btn-fit-route" class="btn-action-small">
-                <i class="fa-solid fa-compress"></i> View Route
+                <i class="fa-solid fa-compress"></i> Route Overview
               </button>
               <button id="btn-cancel-route" class="btn-action-small btn-cancel">
                 <i class="fa-solid fa-xmark"></i> Cancel
@@ -687,6 +732,28 @@ Power on ESP32 helmet unit to stream live NMEA sentences.
           <i class="fa-solid fa-check"></i> Continue to App Dashboard
         </button>
       </div>
+    </div>
+  <!-- Navigation Destination Arrival Modal -->
+  <div class="modal-overlay hidden" id="nav-arrival-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
+    <div class="modal-card" style="background:#ffffff; border-radius:16px; padding:24px; max-width:380px; width:100%; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+      <div style="width:64px; height:64px; border-radius:50%; background:#dcfce7; color:#15803d; font-size:30px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto;">
+        <i class="fa-solid fa-flag-checkered"></i>
+      </div>
+      <h3 style="font-size:1.3rem; font-weight:800; color:#0f172a; margin-bottom:6px;">Destination Reached!</h3>
+      <p style="font-size:0.9rem; color:#475569; margin-bottom:18px;" id="arrival-dest-name">You have arrived at your destination.</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:10px;">
+          <span style="display:block; font-size:0.7rem; color:#64748b; font-weight:700;">TOTAL DISTANCE</span>
+          <strong style="font-size:1.1rem; color:#0f172a; font-family:var(--font-mono);" id="arrival-trip-dist">0.0 km</strong>
+        </div>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:10px;">
+          <span style="display:block; font-size:0.7rem; color:#64748b; font-weight:700;">AVG SPEED</span>
+          <strong style="font-size:1.1rem; color:#0f172a; font-family:var(--font-mono);" id="arrival-avg-speed">0.0 km/h</strong>
+        </div>
+      </div>
+      <button class="btn-primary-small" id="btn-close-arrival" style="width:100%; padding:14px; font-weight:800; border-radius:10px; font-size:0.95rem; background:#059669; color:#ffffff; border:none; cursor:pointer;">
+        <i class="fa-solid fa-check"></i> Complete Ride
+      </button>
     </div>
   </div>
 
