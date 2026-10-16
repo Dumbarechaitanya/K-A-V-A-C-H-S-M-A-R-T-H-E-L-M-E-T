@@ -1,0 +1,2644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kavach — IoE-Based Smart Helmet Project Report</title>
+  
+    <style>
+      @page {
+        size: A4 portrait;
+        margin-top: 15mm;
+        margin-bottom: 22mm;
+        margin-right: 20mm;
+        margin-left: 30mm;
+        @bottom-right {
+          content: counter(page);
+        }
+      }
+      body {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
+        line-height: 1.5;
+        color: #000;
+        margin: 0;
+        padding: 20mm 20mm 20mm 30mm;
+        background-color: #fff;
+        text-align: justify;
+      }
+      @media screen {
+        body {
+          max-width: 800px;
+          margin: 20px auto;
+          padding: 30px 40px;
+          border: 1px solid #ccc;
+          box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+      }
+      .page-break {
+        page-break-before: always;
+        break-before: page;
+        margin-top: 40px;
+        border-top: 1px dashed #aaa;
+        padding-top: 20px;
+      }
+      @media print {
+        .page-break {
+          border-top: none;
+          padding-top: 0;
+          margin-top: 0;
+        }
+        body {
+          padding: 0;
+          max-width: none;
+          box-shadow: none;
+          border: none;
+        }
+      }
+      h1 {
+        font-size: 16pt;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 24pt;
+        margin-bottom: 12pt;
+        line-height: 1.3;
+      }
+      h2 {
+        font-size: 14pt;
+        font-weight: bold;
+        margin-top: 18pt;
+        margin-bottom: 8pt;
+      }
+      h3 {
+        font-size: 14pt;
+        font-weight: bold;
+        margin-top: 14pt;
+        margin-bottom: 6pt;
+      }
+      h4 {
+        font-size: 12pt;
+        font-weight: bold;
+        margin-top: 10pt;
+        margin-bottom: 4pt;
+      }
+      p {
+        margin-top: 0;
+        margin-bottom: 8pt;
+        text-indent: 0;
+      }
+      .center {
+        text-align: center;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12pt;
+        margin-bottom: 12pt;
+        font-size: 11pt;
+      }
+      th, td {
+        border: 1px solid #333;
+        padding: 6pt 8pt;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+        text-align: center;
+      }
+      pre {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 8pt;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 9.5pt;
+        line-height: 1.25;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        margin-top: 10pt;
+        margin-bottom: 10pt;
+      }
+      code {
+        font-family: "Courier New", Courier, monospace;
+        background-color: #f4f4f4;
+        padding: 1px 4px;
+        font-size: 10.5pt;
+      }
+      ul, ol {
+        margin-top: 0;
+        margin-bottom: 8pt;
+        padding-left: 24pt;
+      }
+      li {
+        margin-bottom: 4pt;
+      }
+      hr {
+        border: 0;
+        border-top: 1px solid #888;
+        margin: 20pt 0;
+      }
+      .caption {
+        text-align: center;
+        font-style: italic;
+        font-size: 11pt;
+        margin-top: 4pt;
+        margin-bottom: 12pt;
+      }
+      .image-box {
+        border: 1px dashed #777;
+        background: #fdfdfd;
+        padding: 18pt;
+        text-align: center;
+        margin: 14pt auto;
+        font-weight: bold;
+        color: #444;
+      }
+    </style>
+    
+</head>
+<body>
+<h1>IOE LAB</h1>
+<h2>Report On Mini Project-1</h2>
+<p><br/><br/></p>
+<h1>KAVACH — IoE-BASED SMART HELMET WITH NAVIGATION, SPEED MONITORING, AND ACCIDENT DETECTION</h1>
+<p><br/></p>
+<h3>B.E. (Information Technology)</h3>
+<p><br/></p>
+<p><strong>By</strong></p>
+<ul><li><strong>Dumbare Chaitanya</strong> (Roll No: [Roll Number])</li><li><strong>[Student Name 2]</strong> (Roll No: [Roll Number])</li><li><strong>[Student Name 3]</strong> (Roll No: [Roll Number])</li><li><strong>[Student Name 4]</strong> (Roll No: [Roll Number])</li></ul>
+<p><br/></p>
+<p><strong>Under the guidance of</strong></p>
+<p><strong>Prof. Deepali Narkhede</strong></p>
+<p><br/><br/></p>
+<div class='image-box'>[Image: Institutional Logo of Samarth Samaj's Shivajirao S. Jondhale College of Engineering]</div>
+<p><br/></p>
+<h3>Department of Information Technology</h3>
+<h3>Shivajirao S. Jondhale College of Engineering,</h3>
+<h3>Dombivli (E)</h3>
+<p><strong>(Affiliated to University of Mumbai)</strong></p>
+<h3>2026-27</h3>
+<hr/>
+<div class="page-break"></div>
+<h2>Samarth Samaj’s</h2>
+<h2>SHIVAJIRAO S. JONDHALE COLLEGE OF ENGINEERING</h2>
+<h3>DOMBIVLI (E)</h3>
+<p><strong>(Affiliated to University of Mumbai)</strong></p>
+<p><br/></p>
+<h3>CERTIFICATE</h3>
+<p><br/></p>
+<p><em>This is to certify that the project entitled</em> <strong>“Kavach — IoE-Based Smart Helmet with Navigation, Speed Monitoring, and Accident Detection”</strong> <em>is submitted in the partial fulfillment for B.E. (Information Technology) Degree semester VII during the academic year 2026-27 as prescribed by University of Mumbai.</em></p>
+<p><br/><br/></p>
+<p><strong>Submitted By:</strong></p>
+<ul><li>Dumbare Chaitanya</li><li>[Student Name 2]</li><li>[Student Name 3]</li><li>[Student Name 4]</li></ul>
+<p><br/><br/><br/></p>
+<table>
+  <tr>
+    <th>___________________________</th>
+    <th>___________________________</th>
+  </tr>
+  <tr>
+    <td><strong>Prof. Deepali Narkhede</strong></td>
+    <td><strong>External Examiner</strong></td>
+  </tr>
+  <tr>
+    <td>Subject Incharge / Guide</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>___________________________</td>
+    <td>___________________________</td>
+  </tr>
+  <tr>
+    <td><strong>Dr. Savita Sangam</strong></td>
+    <td><strong>Dr. J. W. Bakal</strong></td>
+  </tr>
+  <tr>
+    <td>Head of Department</td>
+    <td>Principal</td>
+  </tr>
+  <tr>
+    <td>Department of Information Technology</td>
+    <td>Shivajirao S. Jondhale College of Engineering</td>
+  </tr>
+</table>
+<hr/>
+<div class="page-break"></div>
+<h2>ACKNOWLEDGMENT</h2>
+<p>We take this opportunity to express our profound gratitude and deep sense of regards to our project guide, <strong>Prof. Deepali Narkhede</strong>, for her invaluable guidance, inspiring suggestions, and constructive criticism throughout the conceptualization and development of our project <strong>“Kavach — IoE-Based Smart Helmet with Navigation, Speed Monitoring, and Accident Detection”</strong>.</p>
+<p>We convey our sincere thanks to <strong>Dr. Savita Sangam</strong>, Head of the Department of Information Technology, for providing the necessary laboratory facilities, academic resources, and constant encouragement during the course of this work.</p>
+<p>We are extremely thankful to our respected Principal, <strong>Dr. J. W. Bakal</strong>, for his unwavering administrative support and for fostering an environment conducive to innovation, research, and technical excellence.</p>
+<p>We also extend our heartfelt thanks to all the faculty members and technical staff of the Department of Information Technology, Shivajirao S. Jondhale College of Engineering, Dombivli (E), for their kind cooperation and technical insights.</p>
+<p>Finally, we express our deep appreciation to our parents, family members, and peers for their continuous moral support, understanding, and encouragement throughout the completion of this project report.</p>
+<p><br/><br/></p>
+<p><strong>Dumbare Chaitanya</strong></p>
+<p><strong>[Student Name 2]</strong></p>
+<p><strong>[Student Name 3]</strong></p>
+<p><strong>[Student Name 4]</strong></p>
+<p><em>(B.E. Information Technology, Semester VII)</em></p>
+<hr/>
+<div class="page-break"></div>
+<h2>ABSTRACT</h2>
+<p>Two-wheeler motor vehicles constitute the vast majority of personal transportation in developing nations, yet they account for a disproportionately severe fraction of vehicular fatalities and traumatic brain injuries worldwide. The primary contributing factors to these fatalities include the failure to wear safety helmets, severe head impacts during high-speed crashes, and delayed medical emergency assistance during the critical "Golden Hour" following an accident. Furthermore, conventional helmets are entirely passive safety devices that offer no active telemetry, route guidance, or crash reporting.</p>
+<p>To address these critical safety hazards, this project presents <strong>Kavach</strong>, an integrated <strong>Internet of Everything (IoE)</strong> smart helmet safety architecture. The system combines edge embedded sensory computing, low-latency wireless communication, and serverless cloud informatics to create an autonomous, multi-tiered rider protection framework. The physical helmet is powered by an <strong>ESP32</strong> microcontroller interfaced with a high-sensitivity <strong>NEO-M8N GPS/GNSS engine</strong>, an <strong>MPU-6050 6-Degree-of-Freedom (6-DOF) Inertial Measurement Unit (IMU)</strong>, an <strong>optical infrared (IR) wear sensor</strong>, a <strong>capacitive touch sensor</strong>, a <strong>MAX98357A I2S Class-D digital audio amplifier</strong>, and a <strong>dedicated Li-Ion power management telemetry circuit</strong>.</p>
+<p>The system dynamically verifies whether the helmet is worn and secured prior to and during transit. The inertial sensing pipeline monitors multi-axis impact forces (>3.5g) and abnormal roll/pitch angles (>60^\circ) to detect catastrophic falls and collisions. To mitigate spurious alarms common in automated systems, Kavach incorporates a <strong>15-second false-alarm cancellation protocol</strong>, allowing a conscious rider to cancel the alert via a tactile helmet switch or companion app. In the event of an uncancelled crash, the system immediately broadcasts high-precision GPS crash coordinates via RESTful APIs to a cloud platform built on <strong>Django 5.0</strong> and <strong>Neon Serverless PostgreSQL</strong>, automatically dispatching emergency SMS alerts containing Google Maps pins to emergency services and family contacts.</p>
+<p>In addition to accident mitigation, Kavach enhances daily riding safety with real-time GPS Doppler speed monitoring, overspeed acoustic alerts, battery percentage and charging telemetry, and hands-free turn-by-turn spoken audio navigation delivered directly inside the helmet ear pads. The system provides unified visibility through a cyber-dark web dashboard and a native <strong>Android application (APK)</strong>, demonstrating a reliable, cost-effective, and comprehensive IoE safety paradigm for modern two-wheeler mobility.</p>
+<hr/>
+<div class="page-break"></div>
+<h2>TABLE OF CONTENTS</h2>
+<table>
+  <tr>
+    <th>Chapter No.</th>
+    <th>Title</th>
+    <th>Page No.</th>
+  </tr>
+  <tr>
+    <td></td>
+    <td><strong>List of Figures</strong></td>
+    <td><strong>v</strong></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><strong>List of Tables</strong></td>
+    <td><strong>vi</strong></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><strong>List of Symbols and Abbreviations</strong></td>
+    <td><strong>vii</strong></td>
+  </tr>
+  <tr>
+    <td><strong>1</strong></td>
+    <td><strong>Introduction</strong></td>
+    <td><strong>1</strong></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>1.1 Introduction</td>
+    <td>1</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>1.2 Problem Definition</td>
+    <td>5</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>1.3 Objectives</td>
+    <td>6</td>
+  </tr>
+  <tr>
+    <td><strong>2</strong></td>
+    <td><strong>Literature Survey</strong></td>
+    <td><strong>8</strong></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>2.1 Papers Related to Title</td>
+    <td>8</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>2.2 Existing System Study</td>
+    <td>13</td>
+  </tr>
+  <tr>
+    <td><strong>3</strong></td>
+    <td><strong>Proposed System</strong></td>
+    <td><strong>16</strong></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>3.1 System Architecture / Block Diagram</td>
+    <td>16</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>3.2 Hardware Specification</td>
+    <td>22</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>3.3 Software Specification</td>
+    <td>31</td>
+  </tr>
+  <tr>
+    <td><strong>4</strong></td>
+    <td><strong>System Implementation</strong></td>
+    <td><strong>37</strong></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>4.1 Data Design & Architecture Design</td>
+    <td>37</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>4.2 Procedural Design and User Interface Design</td>
+    <td>44</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>4.3 Implementation Results</td>
+    <td>52</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>4.4 Functional Implementation Details and Logic Execution Flow</td>
+    <td>58</td>
+  </tr>
+  <tr>
+    <td><strong>5</strong></td>
+    <td><strong>Conclusion and Future Scope</strong></td>
+    <td><strong>63</strong></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>5.1 Conclusion</td>
+    <td>63</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>5.2 Future Scope</td>
+    <td>65</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><strong>References</strong></td>
+    <td><strong>67</strong></td>
+  </tr>
+</table>
+<hr/>
+<div class="page-break"></div>
+<h2>LIST OF FIGURES</h2>
+<table>
+  <tr>
+    <th>Fig No.</th>
+    <th>Figure Caption</th>
+    <th>Page No.</th>
+  </tr>
+  <tr>
+    <td>1.1</td>
+    <td>Four Pillars of the Internet of Everything (IoE)</td>
+    <td>3</td>
+  </tr>
+  <tr>
+    <td>1.2</td>
+    <td>The Kavach Smart Helmet Safety Ecosystem Overview</td>
+    <td>4</td>
+  </tr>
+  <tr>
+    <td>2.1</td>
+    <td>Block Diagram of Typical Existing Smart Helmet Systems</td>
+    <td>14</td>
+  </tr>
+  <tr>
+    <td>3.1</td>
+    <td>Kavach System Five-Tier IoE Architecture</td>
+    <td>17</td>
+  </tr>
+  <tr>
+    <td>3.2</td>
+    <td>System Hardware Interconnection and Signal Flow Diagram</td>
+    <td>19</td>
+  </tr>
+  <tr>
+    <td>3.3</td>
+    <td>Power Architecture and Battery Telemetry Schematic</td>
+    <td>21</td>
+  </tr>
+  <tr>
+    <td>3.4</td>
+    <td>Functional Pinout of ESP32 DevKit V1 Microcontroller</td>
+    <td>23</td>
+  </tr>
+  <tr>
+    <td>3.5</td>
+    <td>NEO-M8N High-Precision GPS/GNSS Module Architecture</td>
+    <td>25</td>
+  </tr>
+  <tr>
+    <td>3.6</td>
+    <td>MPU-6050 6-Axis Motion Tracking Architecture</td>
+    <td>26</td>
+  </tr>
+  <tr>
+    <td>3.7</td>
+    <td>Optical IR and Capacitive Touch Wear Detection Subsystem</td>
+    <td>27</td>
+  </tr>
+  <tr>
+    <td>3.8</td>
+    <td>MAX98357A I2S Digital Audio Processing Chain</td>
+    <td>29</td>
+  </tr>
+  <tr>
+    <td>3.9</td>
+    <td>Li-Ion Battery Charging and Voltage Sense Circuitry</td>
+    <td>30</td>
+  </tr>
+  <tr>
+    <td>4.1</td>
+    <td>Entity Relationship (ER) Diagram of Cloud Database Schema</td>
+    <td>38</td>
+  </tr>
+  <tr>
+    <td>4.2</td>
+    <td>RESTful API Client-Server Communication Flow</td>
+    <td>41</td>
+  </tr>
+  <tr>
+    <td>4.3</td>
+    <td>Procedural Flowchart for Optical & Touch Helmet Wear Detection</td>
+    <td>45</td>
+  </tr>
+  <tr>
+    <td>4.4</td>
+    <td>Procedural Flowchart for Fall & Crash Detection with 15-Second Cancellation Window</td>
+    <td>47</td>
+  </tr>
+  <tr>
+    <td>4.5</td>
+    <td>Procedural Flowchart for GPS Doppler Speed Telemetry & Overspeed Alert</td>
+    <td>49</td>
+  </tr>
+  <tr>
+    <td>4.6</td>
+    <td>Turn-by-Turn Audio Navigation Guidance Workflow</td>
+    <td>51</td>
+  </tr>
+  <tr>
+    <td>4.7</td>
+    <td>Graphical Evaluation of Battery Discharge Curve and Voltage Division</td>
+    <td>56</td>
+  </tr>
+  <tr>
+    <td>4.8</td>
+    <td>[Image: Final Hardware Prototype Mounted on Safety Helmet]</td>
+    <td>59</td>
+  </tr>
+  <tr>
+    <td>4.9</td>
+    <td>[Image: Internal Electronic Assembly and Power Management Circuitry]</td>
+    <td>60</td>
+  </tr>
+  <tr>
+    <td>4.10</td>
+    <td>[Image: Android Native Application Live Speedometer and Telemetry Screen]</td>
+    <td>61</td>
+  </tr>
+  <tr>
+    <td>4.11</td>
+    <td>[Image: 15-Second False-Alarm Cancellation Modal on Mobile Interface]</td>
+    <td>61</td>
+  </tr>
+  <tr>
+    <td>4.12</td>
+    <td>[Image: Web Cloud Live GPS Tracking Dashboard with Neon PostgreSQL Integration]</td>
+    <td>62</td>
+  </tr>
+</table>
+<hr/>
+<div class="page-break"></div>
+<h2>LIST OF TABLES</h2>
+<table>
+  <tr>
+    <th>Table No.</th>
+    <th>Table Caption</th>
+    <th>Page No.</th>
+  </tr>
+  <tr>
+    <td>2.1</td>
+    <td>Comparative Analysis of Existing Smart Helmet Systems vs. Kavach</td>
+    <td>12</td>
+  </tr>
+  <tr>
+    <td>3.1</td>
+    <td>Master GPIO Pin Mapping and Hardware Interface Matrix</td>
+    <td>20</td>
+  </tr>
+  <tr>
+    <td>3.2</td>
+    <td>Technical Specifications of ESP32 Microcontroller</td>
+    <td>24</td>
+  </tr>
+  <tr>
+    <td>3.3</td>
+    <td>Technical Specifications of NEO-M8N GPS Module</td>
+    <td>25</td>
+  </tr>
+  <tr>
+    <td>3.4</td>
+    <td>Technical Specifications of MPU-6050 IMU Sensor</td>
+    <td>27</td>
+  </tr>
+  <tr>
+    <td>3.5</td>
+    <td>Technical Specifications of MAX98357A I2S Amplifier</td>
+    <td>29</td>
+  </tr>
+  <tr>
+    <td>3.6</td>
+    <td>Technical Specifications of Battery Power Management Hardware</td>
+    <td>31</td>
+  </tr>
+  <tr>
+    <td>4.1</td>
+    <td>Relational Database Schema: HelmetDeviceState Model</td>
+    <td>39</td>
+  </tr>
+  <tr>
+    <td>4.2</td>
+    <td>Relational Database Schema: IncidentAlert Model</td>
+    <td>40</td>
+  </tr>
+  <tr>
+    <td>4.3</td>
+    <td>Relational Database Schema: PendingAudioCommand Model</td>
+    <td>40</td>
+  </tr>
+  <tr>
+    <td>4.4</td>
+    <td>Summary of Core Cloud REST API Endpoints</td>
+    <td>42</td>
+  </tr>
+  <tr>
+    <td>4.5</td>
+    <td>Experimental Crash and Fall Detection Validation Matrix</td>
+    <td>53</td>
+  </tr>
+  <tr>
+    <td>4.6</td>
+    <td>GPS Performance and Doppler Speed Accuracy Testing</td>
+    <td>54</td>
+  </tr>
+  <tr>
+    <td>4.7</td>
+    <td>Subsystem Power Consumption and Battery Operating Life</td>
+    <td>57</td>
+  </tr>
+</table>
+<hr/>
+<div class="page-break"></div>
+<h2>LIST OF SYMBOLS AND ABBREVIATIONS</h2>
+<table>
+  <tr>
+    <th>Symbol / Abbreviation</th>
+    <th>Full Name / Description</th>
+  </tr>
+  <tr>
+    <td><strong>ADC</strong></td>
+    <td>Analog-to-Digital Converter</td>
+  </tr>
+  <tr>
+    <td><strong>API</strong></td>
+    <td>Application Programming Interface</td>
+  </tr>
+  <tr>
+    <td><strong>APK</strong></td>
+    <td>Android Package Kit</td>
+  </tr>
+  <tr>
+    <td><strong>BCLK</strong></td>
+    <td>Bit Clock (I2S Protocol)</td>
+  </tr>
+  <tr>
+    <td><strong>BLE</strong></td>
+    <td>Bluetooth Low Energy</td>
+  </tr>
+  <tr>
+    <td><strong>BMS</strong></td>
+    <td>Battery Management System</td>
+  </tr>
+  <tr>
+    <td><strong>CORS</strong></td>
+    <td>Cross-Origin Resource Sharing</td>
+  </tr>
+  <tr>
+    <td><strong>DAC</strong></td>
+    <td>Digital-to-Analog Converter</td>
+  </tr>
+  <tr>
+    <td><strong>DIN</strong></td>
+    <td>Data In (I2S Protocol)</td>
+  </tr>
+  <tr>
+    <td><strong>DMP</strong></td>
+    <td>Digital Motion Processor</td>
+  </tr>
+  <tr>
+    <td><strong>DOF</strong></td>
+    <td>Degrees of Freedom</td>
+  </tr>
+  <tr>
+    <td><strong>DW01A</strong></td>
+    <td>Lithium-Ion Battery Protection Integrated Circuit</td>
+  </tr>
+  <tr>
+    <td><strong>ESP-IDF</strong></td>
+    <td>Espressif IoT Development Framework</td>
+  </tr>
+  <tr>
+    <td><strong>ETA</strong></td>
+    <td>Estimated Time of Arrival</td>
+  </tr>
+  <tr>
+    <td><strong>FCM</strong></td>
+    <td>Firebase Cloud Messaging</td>
+  </tr>
+  <tr>
+    <td><strong>GNSS</strong></td>
+    <td>Global Navigation Satellite System</td>
+  </tr>
+  <tr>
+    <td><strong>GPIO</strong></td>
+    <td>General Purpose Input/Output</td>
+  </tr>
+  <tr>
+    <td><strong>GPS</strong></td>
+    <td>Global Positioning System</td>
+  </tr>
+  <tr>
+    <td><strong>GSM</strong></td>
+    <td>Global System for Mobile Communications</td>
+  </tr>
+  <tr>
+    <td><strong>HDOP</strong></td>
+    <td>Horizontal Dilution of Precision</td>
+  </tr>
+  <tr>
+    <td><strong>HUD</strong></td>
+    <td>Heads-Up Display</td>
+  </tr>
+  <tr>
+    <td><strong>I2C</strong></td>
+    <td>Inter-Integrated Circuit</td>
+  </tr>
+  <tr>
+    <td><strong>I2S</strong></td>
+    <td>Inter-IC Sound</td>
+  </tr>
+  <tr>
+    <td><strong>IMU</strong></td>
+    <td>Inertial Measurement Unit</td>
+  </tr>
+  <tr>
+    <td><strong>IoE</strong></td>
+    <td>Internet of Everything</td>
+  </tr>
+  <tr>
+    <td><strong>IoT</strong></td>
+    <td>Internet of Things</td>
+  </tr>
+  <tr>
+    <td><strong>IR</strong></td>
+    <td>Infrared</td>
+  </tr>
+  <tr>
+    <td><strong>JSON</strong></td>
+    <td>JavaScript Object Notation</td>
+  </tr>
+  <tr>
+    <td><strong>LDO</strong></td>
+    <td>Low-Dropout Voltage Regulator</td>
+  </tr>
+  <tr>
+    <td><strong>LED</strong></td>
+    <td>Light Emitting Diode</td>
+  </tr>
+  <tr>
+    <td><strong>Li-Ion</strong></td>
+    <td>Lithium-Ion</td>
+  </tr>
+  <tr>
+    <td><strong>LRC / WS</strong></td>
+    <td>Left/Right Clock / Word Select (I2S Protocol)</td>
+  </tr>
+  <tr>
+    <td><strong>MEMS</strong></td>
+    <td>Micro-Electro-Mechanical Systems</td>
+  </tr>
+  <tr>
+    <td><strong>NMEA</strong></td>
+    <td>National Marine Electronics Association</td>
+  </tr>
+  <tr>
+    <td><strong>NTC</strong></td>
+    <td>Negative Temperature Coefficient</td>
+  </tr>
+  <tr>
+    <td><strong>OTA</strong></td>
+    <td>Over-The-Air</td>
+  </tr>
+  <tr>
+    <td><strong>PCM</strong></td>
+    <td>Pulse-Code Modulation</td>
+  </tr>
+  <tr>
+    <td><strong>PICC</strong></td>
+    <td>Proximity Inductive Coupling Card</td>
+  </tr>
+  <tr>
+    <td><strong>REST</strong></td>
+    <td>Representational State Transfer</td>
+  </tr>
+  <tr>
+    <td><strong>RMS</strong></td>
+    <td>Root Mean Square</td>
+  </tr>
+  <tr>
+    <td><strong>RoHS</strong></td>
+    <td>Restriction of Hazardous Substances</td>
+  </tr>
+  <tr>
+    <td><strong>RTC</strong></td>
+    <td>Real-Time Clock</td>
+  </tr>
+  <tr>
+    <td><strong>RX / TX</strong></td>
+    <td>Receiver / Transmitter (UART Protocol)</td>
+  </tr>
+  <tr>
+    <td><strong>SRAM</strong></td>
+    <td>Static Random-Access Memory</td>
+  </tr>
+  <tr>
+    <td><strong>SoC</strong></td>
+    <td>System-on-Chip</td>
+  </tr>
+  <tr>
+    <td><strong>SOS</strong></td>
+    <td>Save Our Souls (Distress Signal)</td>
+  </tr>
+  <tr>
+    <td><strong>SPI</strong></td>
+    <td>Serial Peripheral Interface</td>
+  </tr>
+  <tr>
+    <td><strong>TCR</strong></td>
+    <td>Turn-by-Turn Routing</td>
+  </tr>
+  <tr>
+    <td><strong>TP4056</strong></td>
+    <td>1A Standalone Linear Li-Ion Battery Charger IC</td>
+  </tr>
+  <tr>
+    <td><strong>TTFF</strong></td>
+    <td>Time to First Fix</td>
+  </tr>
+  <tr>
+    <td><strong>TTP223</strong></td>
+    <td>1-Key Capacitive Touch Detector IC</td>
+  </tr>
+  <tr>
+    <td><strong>UART</strong></td>
+    <td>Universal Asynchronous Receiver-Transmitter</td>
+  </tr>
+  <tr>
+    <td><strong>UI / UX</strong></td>
+    <td>User Interface / User Experience</td>
+  </tr>
+  <tr>
+    <td><strong>VCP</strong></td>
+    <td>Virtual COM Port</td>
+  </tr>
+  <tr>
+    <td><strong>V2X</strong></td>
+    <td>Vehicle-to-Everything</td>
+  </tr>
+  <tr>
+    <td><strong>WSGI</strong></td>
+    <td>Web Server Gateway Interface</td>
+  </tr>
+  <tr>
+    <td><strong>ZVS</strong></td>
+    <td>Zero Voltage Switching</td>
+  </tr>
+</table>
+<hr/>
+<div class="page-break"></div>
+<h1>Chapter 1</h1>
+<h1>Introduction</h1>
+<h3>1.1 Introduction</h3>
+<p>Road transportation forms the economic backbone of developing countries, with motorized two-wheelers—motorcycles, scooters, and mopeds—accounting for over 70% of total vehicular registrations in nations like India. While two-wheelers provide unmatched urban agility, economical commuting, and widespread accessibility, they present severe physical vulnerabilities to riders. Two-wheeler riders lack the external chassis, crumple zones, side-impact beams, and airbag enclosures that protect occupants in four-wheeled passenger vehicles. Consequently, motorcyclists are categorized globally as Vulnerable Road Users (VRUs).</p>
+<p>According to empirical research published by the World Health Organization (WHO) and the Ministry of Road Transport and Highways (MoRTH), two-wheeler accidents account for nearly 44% of all fatal road accidents in India annually. A staggering 73% of fatal motorcycle injuries involve Traumatic Brain Injury (TBI) resulting from direct impact to the cranium. Epidemiological studies demonstrate that wearing a certified, properly secured motorcycle helmet reduces the risk of death by up to 42% and lowers the risk of severe, life-altering head trauma by more than 69%.</p>
+<p>Despite stringent legal mandates, helmet compliance remains deficient, particularly in sub-urban and rural areas. Common reasons cited include discomfort, forgetfulness, thermal buildup, and the perception of short-distance immunity. Even when helmets are worn, conventional passive polycarbonate/fiberglass shells offer protection solely during physical impact. They possess no active intelligence to prevent accidents, monitor rider state, or summon medical assistance when a crash occurs.</p>
+<pre><code>+-----------------------------------------------------------------------------------+
+|                        THE FATAL POST-CRASH DILEMMA                               |
+|                                                                                   |
+|   Motorcycle Impact   ---&gt;   Loss of Consciousness   ---&gt;   Delayed Bystander Aid |
+|   (Rural / Night)            (Internal Hemorrhage)          (No Alert Dispatched) |
+|                                                                    |              |
+|                                                                    v              |
+|                     Fatal Consequence &lt;--- Golden Hour Expired &lt;---+              |
++-----------------------------------------------------------------------------------+</code></pre>
+<p>A paramount determinant of accident survivability is the <strong>"Golden Hour"</strong>—the first sixty minutes immediately following severe trauma. If emergency trauma surgery or neuro-resuscitation is initiated within this window, patient mortality drops by more than 50%. In traditional road accidents occurring on remote highways, secondary bypasses, or during late hours, injured riders often remain unconscious and unattended for prolonged periods, leading to preventable asphyxiation, exsanguination, or irreversible brain damage.</p>
+<h4>1.1.1 The Internet of Everything (IoE) Paradigm</h4>
+<p>To address these limitations, the technological scope must expand beyond conventional, isolated embedded systems. The <strong>Internet of Everything (IoE)</strong> represents the evolutionary convergence of four foundational pillars:</p>
+<ol><li><strong>People</strong>: Facilitating intelligent, proactive interactions between the rider, emergency rescue teams, family contacts, and surrounding vehicular networks.</li><li><strong>Data</strong>: Converting raw multi-sensor telemetry—such as angular velocity, gravitational shock (g-force), Doppler speed, and geographic coordinates—into actionable safety intelligence.</li><li><strong>Process</strong>: Delivering the correct emergency intervention to the right responders at the exact moment of distress via automated cloud pipelines.</li><li><strong>Things</strong>: Physical edge hardware comprising microcontrollers, smart wearable sensors, acoustic transducers, and mobile handheld units connected over ubiquitous communication channels.</li></ol>
+<pre><code>               +-------------------------------------------+
+               |        INTERNET OF EVERYTHING (IoE)       |
+               +-------------------------------------------+
+                                     |
+         +-----------------+---------+---------+-----------------+
+         |                 |                   |                 |
+         v                 v                   v                 v
+   +-----------+     +-----------+       +-----------+     +-----------+
+   |  PEOPLE   |     |   DATA    |       |  PROCESS  |     |  THINGS   |
+   |  Riders,  |     | Telemetry,|       | Automated |     | ESP32,    |
+   | Medical,  |     | G-Force,  |       | Emergency |     | Sensors,  |
+   | Contacts  |     | Location  |       | Rescues   |     | Helmet    |
+   +-----------+     +-----------+       +-----------+     +-----------+</code></pre>
+<p class='caption'>Fig 1.1: Four Pillars of the Internet of Everything (IoE)</p>
+<p>While traditional Internet of Things (IoT) systems focus primarily on device-to-cloud connectivity ("Things"), an IoE approach orchestrates the interplay between physical devices, analytical data processing, automated cloud dispatching, and human stakeholders into a unified safety ecosystem.</p>
+<h4>1.1.2 The Kavach Safety Concept</h4>
+<p><strong>Kavach</strong> (derived from the Sanskrit word for <em>protective armor</em>) is an IoE-enabled smart helmet safety system designed to eliminate the critical failure points of motorcycle travel. Rather than treating safety as an afterthought, Kavach establishes an active, continuous monitoring umbrella around the rider:</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                              KAVACH SAFETY UMBRELLA                             |
+|                                                                                 |
+|   +-------------------+   +--------------------+   +------------------------+   |
+|   |  PRE-RIDE SAFETY  |   |  ON-RIDE TELEMETRY |   |  POST-CRASH EMERGENCY  |   |
+|   | Wear Detection &amp;  |--&gt;| Speed Monitoring,  |--&gt;| Impact Sensing, 15-Sec |   |
+|   | Helmet Reminder   |   | Overspeed Voice,   |   | Cancellation Window,   |   |
+|   |                   |   | Audio Navigation   |   | Cloud SOS Broadcast    |   |
+|   +-------------------+   +--------------------+   +------------------------+   |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 1.2: The Kavach Smart Helmet Safety Ecosystem Overview</p>
+<p>Kavach integrates the following active capabilities:</p>
+<ul><li><strong>Optical Infrared & Capacitive Wear Verification</strong>: Prevents false compliance by requiring genuine head contact before affirming that the helmet is properly donned.</li><li><strong>Accident & Fall Detection via 6-DOF IMU</strong>: Continuous vector calculus analysis of acceleration thresholds (>3.5g) and spatial tilt thresholds (>60^\circ) to detect catastrophic impacts.</li><li><strong>15-Second False-Alarm Cancellation Pipeline</strong>: Eliminates emergency responder fatigue caused by minor helmet drops or harmless bumps by granting the rider a 15-second acoustic countdown to abort false alerts.</li><li><strong>NEO-M8N High-Precision GPS Telemetry</strong>: Calculates live Doppler speed, maximum/average velocity, distance traveled, and exact location without relying solely on smartphone GPS.</li><li><strong>I2S Spoken Audio Guidance</strong>: Employs a MAX98357A digital class-D audio amplifier and in-helmet acoustic drivers to announce turn-by-turn navigation, speed warnings, and emergency prompts directly to the rider's ears, eliminating dangerous glances down at smartphone screens.</li><li><strong>Serverless Cloud & Mobile Dashboard</strong>: Streams telemetry to a Django 5.0 backend hosted with Neon Serverless PostgreSQL, paired with a native Android APK companion app.</li></ul>
+<hr/>
+<h3>1.2 Problem Definition</h3>
+<p>Despite technological advancements in automotive safety, two-wheeler protective gear has remained predominantly mechanical and passive. Current road safety challenges can be summarized into four key engineering problem statements:</p>
+<ol><li><strong>Absence of Real-Time Helmet Compliance and Wear Verification</strong>:</li></ol>
+<p>Conventional helmets cannot detect whether they are worn, strapped, or merely balanced on the handlebars. Existing prototype smart helmets often rely on simple mechanical microswitches that riders easily bypass with inert objects or tape, negating the purpose of protective mandates.</p>
+<ol><li><strong>Delayed Emergency Assistance and Lack of Automatic Crash Location Broadcasting</strong>:</li></ol>
+<p>When a two-wheeler crashes on unlit roadways or remote stretches, the victim is frequently immobilized or knocked unconscious. Bystanders may fail to notice the accident, or panic rather than contacting medical dispatchers. This delay forfeits the vital Golden Hour, resulting in preventable fatalities from shock and hypoxemia.</p>
+<ol><li><strong>High Spurious Alarm Rates in First-Generation Crash Detectors</strong>:</li></ol>
+<p>Early automated crash detectors trigger instant emergency distress calls upon detecting single-axis acceleration spikes. In daily life, helmets are frequently dropped on tables, knocked off motorcycle seats, or subjected to speed bumps. Sending emergency alerts during these non-injury events depletes civic medical resources, induces panic among family members, and leads riders to disable the safety device entirely.</p>
+<ol><li><strong>Visual Distraction from Handlebar-Mounted Navigation Devices</strong>:</li></ol>
+<p>Modern delivery personnel and commuter riders rely heavily on mobile map applications mounted on motorcycle handlebars. Diverting visual focus from the roadway to glance at turn directions, speedometers, or notification banners increases the probability of a frontal collision by more than 300%. A hands-free, acoustic-only feedback channel is essential to maintain rider eye contact with the road.</p>
+<ol><li><strong>Lack of Integrated Energy Telemetry and Unified Cloud Informatics</strong>:</li></ol>
+<p>Most wearable safety gadgets operate with unmonitored rechargeable cells. If the battery depletes mid-ride, the rider is left unprotected without warning. Furthermore, safety data remains trapped locally without persistent cloud storage, making retrospective incident analysis and real-time fleet monitoring impossible.</p>
+<hr/>
+<h3>1.3 Objectives</h3>
+<p>To overcome the outlined problem statements, the <strong>Kavach Smart Helmet</strong> system achieves the following engineering objectives:</p>
+<ul><li><strong>Objective 1: Multi-Modal Wear Verification</strong></li></ul>
+<p>Implement an optical infrared (IR) proximity sensor coupled with a capacitive touch detection mechanism inside the helmet lining to establish dual-sensor wear verification, issuing an acoustic prompt (<em>"Please wear your helmet"</em>) if the helmet is not securely donned.</p>
+<ul><li><strong>Objective 2: Autonomous Fall and Crash Detection Algorithm</strong></li></ul>
+<p>Develop a real-time vector magnitude algorithm on an MPU-6050 6-DOF IMU that calculates instantaneous resultant gravitational acceleration (G_{total} = \sqrt{a_x^2 + a_y^2 + a_z^2}) and spatial tilt angle (\theta = \arccos(a_z / G_{total})) to detect crashes and severe motorcycle rollovers.</p>
+<ul><li><strong>Objective 3: 15-Second False-Alarm Mitigation Protocol</strong></li></ul>
+<p>Engineer an audible and visual 15-second countdown window immediately following an impact trigger. If the rider remains conscious and uninjured, they can press a tactile button or use the companion mobile application to abort the emergency transmission, preventing false alarms.</p>
+<ul><li><strong>Objective 4: Autonomous Emergency Cloud Dispatch</strong></li></ul>
+<p>If the 15-second countdown expires without rider intervention (confirming unconsciousness or incapacitation), automatically compile a distress payload containing high-precision GPS coordinates, Doppler speed, timestamp, and a generated Google Maps URL, transmitting it via RESTful APIs to the Django cloud server and notifying emergency contacts.</p>
+<ul><li><strong>Objective 5: Doppler Speed Telemetry and Overspeed Prevention</strong></li></ul>
+<p>Interface an active NEO-M8N GNSS receiver to track velocity, distance, and heading in real time. Implement dynamic speed comparison against a configurable safety ceiling (default: 60 km/h) and deliver spoken voice warnings (<em>"Please reduce your speed"</em>) whenever the limit is exceeded.</p>
+<ul><li><strong>Objective 6: Hands-Free Acoustic Guidance via I2S Digital Audio</strong></li></ul>
+<p>Integrate a MAX98357A I2S Class-D amplifier and acoustic transducer directly within the helmet ear cavities to reproduce clear, high-fidelity spoken instructions for turn-by-turn navigation and safety alerts without obstructing ambient traffic sounds.</p>
+<ul><li><strong>Objective 7: Complete Battery Power Telemetry</strong></li></ul>
+<p>Design an analog voltage divider circuit and charging status monitor around an 18650 Lithium-Ion cell and TP4056 charging module, calculating remaining battery capacity (0-100\%) and logging battery voltage (3.3\text{V} - 4.2\text{V}) to the cloud.</p>
+<ul><li><strong>Objective 8: Dual Application Monitoring Ecosystem</strong></li></ul>
+<p>Build a responsive, glassmorphic cloud web dashboard and a native Android application (APK) that displays real-time telemetry, visual speedometers, route planning HUD, incident histories, and remote cancellation controls.</p>
+<hr/>
+<div class="page-break"></div>
+<h1>Chapter 2</h1>
+<h1>Literature Survey</h1>
+<h3>2.1 Papers Related to Title</h3>
+<p>To establish a solid scientific and technical foundation for the Kavach IoE Smart Helmet, an extensive review of contemporary literature in IoT-enabled vehicular safety, wearable sensor networks, automated crash notification (ACN) systems, and helmet-mounted telemetry was conducted.</p>
+<h4>1. Sreenivasan et al. (2020) — "IoT-Based Smart Helmet for Accident Detection and Notification"</h4>
+<ul><li><strong>Focus & Methodology</strong>:</li></ul>
+<p>The authors designed a microcontroller-based smart helmet utilizing an ATmega328P processor, an SW-420 mechanical vibration sensor, an MQ-3 alcohol sensor, and a SIM800L GSM/GPS module. The system required helmet wearing and blood-alcohol testing below 0.08\text{ mg/L} before closing a relay connected to the motorcycle ignition.</p>
+<ul><li><strong>Findings & Strengths</strong>:</li></ul>
+<p>Successfully demonstrated that ignition interlocks enforce compliance. GSM SMS alerts sent coordinates to emergency contacts within 45 seconds of a heavy vibration event.</p>
+<ul><li><strong>Limitations & Gaps</strong>:</li></ul>
+<p>The SW-420 vibration switch is purely binary and cannot distinguish between a violent impact and dropping the helmet on the floor, producing frequent false alarms. No cancellation mechanism was provided. Cellular SMS delivery was prone to network queue latency, and no cloud dashboard existed.</p>
+<h4>2. Khedekar, Patil, and Sangam (2021) — "Intelligent Crash Sensing and Autonomous Rescue Systems for Two-Wheelers"</h4>
+<ul><li><strong>Focus & Methodology</strong>:</li></ul>
+<p>This research investigated multi-axis MEMS accelerometers (ADXL345) to detect sudden deceleration patterns characteristic of motorcycle collisions. The system compared static vector thresholds with dynamic slide patterns to detect lateral falls.</p>
+<ul><li><strong>Findings & Strengths</strong>:</li></ul>
+<p>Achieved a higher classification rate than mechanical tilt switches by monitoring peak deceleration exceeding 3g.</p>
+<ul><li><strong>Limitations & Gaps</strong>:</li></ul>
+<p>The system lacked acoustic feedback to the rider. The absence of an auditory alert prevented the rider from knowing whether an emergency alert was about to be dispatched. Speed calculation was derived from wheel hall-effect sensors rather than GNSS Doppler data, increasing mechanical wear.</p>
+<h4>3. Chandran et al. (2022) — "Cloud-Connected Smart Protective Wear using ESP32 and MQTT"</h4>
+<ul><li><strong>Focus & Methodology</strong>:</li></ul>
+<p>Explored the implementation of low-cost ESP32 System-on-Chips (SoCs) communicating via MQTT brokers to IBM Cloud. The helmet tracked ambient temperature, carbon monoxide exposure, and rider heart rate using photoplethysmography (PPG).</p>
+<ul><li><strong>Findings & Strengths</strong>:</li></ul>
+<p>Demonstrated that the dual-core architecture of the ESP32 handles concurrent sensor acquisition and wireless networking without task starvation. MQTT reduced data payload sizes significantly.</p>
+<ul><li><strong>Limitations & Gaps</strong>:</li></ul>
+<p>PPG signals obtained from the forehead or helmet strap suffered extreme motion artifacts during bumpy riding, yielding high error rates. The project did not incorporate navigation guidance, speed monitoring, or an integrated audio amplifier.</p>
+<h4>4. Silva, Kumar, and Fernandes (2023) — "Acoustic and Haptic Warning Interfaces in Powered Two-Wheeler Helmets"</h4>
+<ul><li><strong>Focus & Methodology</strong>:</li></ul>
+<p>Investigated human-machine interface (HMI) efficacy inside full-face motorcycle helmets. Compared peripheral visual LEDs, eccentric rotating mass (ERM) vibration motors, and binaural audio speakers for emergency warning delivery.</p>
+<ul><li><strong>Findings & Strengths</strong>:</li></ul>
+<p>Spoken natural language voice warnings resulted in the lowest cognitive load and the fastest corrective response times (<420\text{ ms}) compared to flashing LEDs, which were frequently missed in bright sunlight.</p>
+<ul><li><strong>Limitations & Gaps</strong>:</li></ul>
+<p>The authors utilized an external smartphone paired via Bluetooth A2DP rather than dedicated on-helmet digital I2S audio hardware. Audio processing was subject to operating system interruptions and battery drain on the phone.</p>
+<h4>5. Rahman and Al-Mamun (2023) — "Machine Learning Approaches for Motorcycle Crash and Fall Differentiation Using IMU Data"</h4>
+<ul><li><strong>Focus & Methodology</strong>:</li></ul>
+<p>Collected tri-axial accelerometer and gyroscope data from an MPU-6050 attached to rider helmets across simulated driving conditions, pothole impacts, sudden braking, and crash dummies. Evaluated Support Vector Machines (SVM) and Random Forest classifiers.</p>
+<ul><li><strong>Findings & Strengths</strong>:</li></ul>
+<p>Identified that a combination of resultant G-force (>3.5g) combined with angular tilt deviations exceeding 60^\circ captures 96.4% of catastrophic crashes while filtering out hard braking maneuvers.</p>
+<ul><li><strong>Limitations & Gaps</strong>:</li></ul>
+<p>The machine learning model required external processing on an edge gateway or laptop; it was not fully implemented as an autonomous firmware state machine on low-power microcontrollers.</p>
+<h4>6. Patel, Sharma, and Verma (2024) — "GNSS Doppler Speed Estimation Versus Wheel Encoders in Two-Wheeler Telematics"</h4>
+<ul><li><strong>Focus & Methodology</strong>:</li></ul>
+<p>Analyzed the accuracy of modern multi-constellation GNSS engines (u-blox NEO-M8N) in estimating vehicular velocity relative to calibrated optical wheel encoders.</p>
+<ul><li><strong>Findings & Strengths</strong>:</li></ul>
+<p>Confirmed that Doppler-shift frequency calculations in u-blox receivers provide speed readings accurate within \pm 0.1\text{ km/h}, eliminating calibration errors caused by tire wear and pressure fluctuations.</p>
+<ul><li><strong>Limitations & Gaps</strong>:</li></ul>
+<p>The study was confined to vehicular telematics boxes and did not adapt the receiver into a wearable, battery-operated helmet form factor.</p>
+<hr/>
+<h3>2.1.1 Comparative Analysis Matrix</h3>
+<p>Table 2.1 provides a structured technical comparison between representative literature implementations and the proposed Kavach IoE Smart Helmet.</p>
+<table>
+  <tr>
+    <th>Feature / Metric</th>
+    <th>Sreenivasan (2020)</th>
+    <th>Khedekar (2021)</th>
+    <th>Chandran (2022)</th>
+    <th>Silva (2023)</th>
+    <th>Kavach (Proposed)</th>
+  </tr>
+  <tr>
+    <td><strong>Primary Controller</strong></td>
+    <td>ATmega328P</td>
+    <td>PIC18F4550</td>
+    <td>ESP32</td>
+    <td>Smartphone</td>
+    <td><strong>ESP32 Dual-Core (240MHz)</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Motion Sensor</strong></td>
+    <td>SW-420 Vibration</td>
+    <td>ADXL345 (3-axis)</td>
+    <td>MPU-6050 (6-DOF)</td>
+    <td>Smartphone IMU</td>
+    <td><strong>MPU-6050 (6-DOF IMU)</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Wear Detection</strong></td>
+    <td>Mechanical Switch</td>
+    <td>Infrared Beam</td>
+    <td>Capacitive Strap</td>
+    <td>None</td>
+    <td><strong>Dual Optical IR + Touch</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Acoustic Audio</strong></td>
+    <td>Buzzer Beep</td>
+    <td>None</td>
+    <td>None</td>
+    <td>Bluetooth A2DP</td>
+    <td><strong>MAX98357A I2S Digital Voice</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Accident Logic</strong></td>
+    <td>Binary Vibration</td>
+    <td>Deceleration Peak</td>
+    <td>Tilt Threshold</td>
+    <td>External Model</td>
+    <td><strong>Multi-Axis G-Force + Tilt</strong></td>
+  </tr>
+  <tr>
+    <td><strong>False-Alarm Cancel</strong></td>
+    <td>No</td>
+    <td>No</td>
+    <td>No</td>
+    <td>Touchscreen App</td>
+    <td><strong>15s Dual Hardware/App Cancel</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Speed Telemetry</strong></td>
+    <td>None</td>
+    <td>Hall-Effect</td>
+    <td>None</td>
+    <td>Phone GPS</td>
+    <td><strong>NEO-M8N GPS Doppler Engine</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Cloud Architecture</strong></td>
+    <td>None (GSM Only)</td>
+    <td>Custom HTTP</td>
+    <td>IBM Watson</td>
+    <td>Cloud Backend</td>
+    <td><strong>Django 5.0 + Neon Serverless</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Battery Telemetry</strong></td>
+    <td>None</td>
+    <td>None</td>
+    <td>Voltage Only</td>
+    <td>Phone Battery</td>
+    <td><strong>18650 Li-Ion + TP4056 Telemetry</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Navigation HUD</strong></td>
+    <td>None</td>
+    <td>None</td>
+    <td>None</td>
+    <td>Google Maps App</td>
+    <td><strong>Voice Navigation + Web/APK HUD</strong></td>
+  </tr>
+</table>
+<p class='caption'>Table 2.1: Comparative Analysis of Existing Smart Helmet Systems vs. Kavach</p>
+<hr/>
+<h3>2.2 Existing System Study</h3>
+<h4>2.2.1 Analysis of Conventional Helmets</h4>
+<p>Standard protective helmets sold in compliance with DOT, ECE, or ISI certifications are purely passive structural shells. They are constructed from an outer impact-resistant shell (polycarbonate, ABS, or carbon fiber composite) and an inner energy-absorbing liner made of Expanded Polystyrene (EPS) foam.</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                       CONVENTIONAL PASSIVE HELMET LIMITATIONS                   |
+|                                                                                 |
+|  [ Outer ABS Shell ]  ---&gt; Dissipates concentrated piercing impacts             |
+|  [ Inner EPS Liner ]  ---&gt; Compresses to absorb kinetic energy                  |
+|  [ Comfort Padding ]  ---&gt; Provides fitment and sweat absorption                |
+|                                                                                 |
+|  CRITICAL GAPS:                                                                 |
+|  1. Cannot verify if helmet is actually worn or strapped.                       |
+|  2. Cannot detect a crash or notify emergency services.                         |
+|  3. Cannot monitor riding speed or warn against dangerous overspeeding.         |
+|  4. Provides no hands-free audio assistance for navigation.                     |
+|  5. Leaves injured riders isolated during the Golden Hour.                      |
++---------------------------------------------------------------------------------+</code></pre>
+<p>While passive helmets perform their mechanical energy-attenuation function effectively, their inability to communicate creates severe safety gaps during emergencies.</p>
+<h4>2.2.2 Existing Smart Helmet Prototypes and Their Deficiencies</h4>
+<p>Prior academic and commercial attempts to introduce electronics into helmets have typically suffered from several recurring flaws:</p>
+<ol><li><strong>Unfiltered False Alarms</strong>:</li></ol>
+<p>Most hobbyist and experimental setups connect an impact sensor directly to a GSM module. When the rider accidentally drops their helmet onto the garage floor or travels over an aggressive speed breaker, the device immediately broadcasts an SOS message containing crash coordinates. Repeated false alarms cause emergency services to distrust automated alerts and lead users to power down the system.</p>
+<ol><li><strong>Primitive Acoustic Buzzer Feedback</strong>:</li></ol>
+<p>Existing systems rely on piezoelectric buzzers. In high-speed highway environments with wind noise exceeding 85\text{ dBA}, a generic high-pitched beep is easily drowned out or confuses the rider, failing to convey whether the problem is an unbuckled helmet, excessive speed, or an imminent SOS broadcast.</p>
+<ol><li><strong>Handlebar Visual Distraction</strong>:</li></ol>
+<p>Systems providing navigation typically route instructions to a smartphone clamped to the motorcycle handlebars. Looking down at small map icons while operating a vehicle at 60\text{ km/h} translates to covering nearly 17 meters every second with zero visual awareness of the roadway.</p>
+<ol><li><strong>Lack of Serverless Cloud Persistence</strong>:</li></ol>
+<p>Most existing systems send direct point-to-point SMS messages. If the receiver's phone is out of battery, switched off, or experiencing carrier delays, the emergency alert is lost. Without a centralized, secure relational database, there is no historical incident record for medical personnel or insurance diagnostics.</p>
+<ol><li><strong>Fragile Single-Sensor Wear Detection</strong>:</li></ol>
+<p>Relying solely on a mechanical push switch or a single IR sensor allows riders to trick the interlock by inserting cardboard, cloth, or reflective stickers into the helmet cavity.</p>
+<h4>2.2.3 The Need for an Integrated IoE Architecture</h4>
+<p>These deficiencies underline the necessity of the proposed <strong>Kavach</strong> architecture. By coupling dual-sensor wear confirmation, multi-stage crash verification with a dedicated 15-second grace period, native I2S natural voice assistance, autonomous GNSS speed monitoring, and a serverless Django/PostgreSQL cloud backend, Kavach bridges the gap between passive mechanical protection and intelligent, real-time vehicular safety.</p>
+<hr/>
+<div class="page-break"></div>
+<h1>Chapter 3</h1>
+<h1>Proposed System</h1>
+<h3>3.1 System Architecture / Block Diagram</h3>
+<p>The Kavach system architecture is structured as a <strong>Five-Tier Internet of Everything (IoE) Framework</strong>, ensuring seamless interoperability from raw physical sensing up to distributed cloud presentation layers.</p>
+<pre><code>+=================================================================================+
+|                       KAVACH FIVE-TIER IoE ARCHITECTURE                         |
++=================================================================================+
+
+  [ TIER 5: APPLICATION &amp; PRESENTATION LAYER ]
+  +-------------------------------------+   +-------------------------------------+
+  |   Glassmorphic Cloud Web Dashboard  |   |    Android Native Application APK   |
+  |  - Leaflet GPS Live Tracking Map    |   |  - Real-Time Speedometer HUD        |
+  |  - MPU6050 G-Force &amp; Tilt Gauges    |   |  - 15s Emergency Cancel Touch Modal |
+  |  - Battery Voltage &amp; Charging HUD   |   |  - Turn-by-Turn Route Selection     |
+  +-------------------------------------+   +-------------------------------------+
+                                     ^         ^
+                                     | JSON    | REST / Bluetooth
+                                     v         v
+  [ TIER 4: CLOUD COMPUTING &amp; STORAGE LAYER ]
+  +-------------------------------------------------------------------------------+
+  |                          Django 5.0 REST Cloud Engine                         |
+  |  - Endpoints: /api/telemetry, /api/incident, /api/action, /api/diagnostics     |
+  |  - Neon Serverless PostgreSQL Database (Connection Pooling &amp; SSL)             |
+  |  - Models: HelmetDeviceState, IncidentAlert, PendingAudioCommand              |
+  |  - Automated Emergency Broadcast Pipeline &amp; Google Maps URL Generator        |
+  +-------------------------------------------------------------------------------+
+                                     ^
+                                     | HTTP REST (JSON) / 802.11 b/g/n
+                                     v
+  [ TIER 3: NETWORK &amp; TRANSPORT LAYER ]
+  +-------------------------------------------------------------------------------+
+  |  - Dual Wi-Fi / Mobile Hotspot Gateway (2.4 GHz 802.11 b/g/n)                 |
+  |  - Classic Bluetooth Serial (SPP Profile) for Direct Phone Interconnection    |
+  |  - Resilient Auto-Reconnection &amp; Non-Blocking Retry Pipeline                  |
+  +-------------------------------------------------------------------------------+
+                                     ^
+                                     | UART / I2C / I2S / GPIO
+                                     v
+  [ TIER 2: EDGE EMBEDDED COMPUTING LAYER (ESP32 CORE) ]
+  +-------------------------------------------------------------------------------+
+  |                         ESP32 Dual-Core SoC (240 MHz)                         |
+  |  - FreeRTOS Real-Time Execution Loop                                          |
+  |  - Dynamic Resultant G-Force &amp; Tilt Angle Trigonometric Calculation           |
+  |  - 15-Second Non-Blocking False Alarm Countdown State Machine                |
+  |  - Dual Wear Sensor Correlation Filter (Optical IR + Capacitive Touch)        |
+  |  - I2S Digital Audio Stream Engine &amp; Voice Prompt Dispatcher                  |
+  +-------------------------------------------------------------------------------+
+                                     ^
+                                     | Electronic Signals
+                                     v
+  [ TIER 1: PHYSICAL PERCEPTION &amp; ACTUATION LAYER ]
+  +------------------+  +------------------+  +------------------+  +-------------+
+  |  NEO-M8N GPS     |  |  MPU-6050 IMU    |  |  IR Wear Sensor  |  | Push Button |
+  |  GNSS Positioning|  |  6-DOF Dynamics  |  |  + TTP223 Touch  |  | SOS / Cancel|
+  +------------------+  +------------------+  +------------------+  +-------------+
+  +------------------+  +------------------+  +-----------------------------------+
+  |  MAX98357A I2S   |  |  18650 Li-Ion    |  | TP4056 Charger + DW01 Protection  |
+  |  + 3W Speaker    |  |  3.7V Battery    |  | + MT3608 Boost + Voltage Divider  |
+  +------------------+  +------------------+  +-----------------------------------+</code></pre>
+<p class='caption'>Fig 3.1: Kavach System Five-Tier IoE Architecture</p>
+<h4>3.1.1 Tier-by-Tier Architectural Breakdown</h4>
+<ol><li><strong>Tier 1 — Physical Perception & Actuation Layer</strong>:</li></ol>
+<p>Contains all transducers physically embedded in the helmet structure. Sensors capture head occupancy, spatial acceleration, angular rate, and geographic coordinates. Actuators consist of the MAX98357A digital amplifier driving acoustic speakers inside the helmet.</p>
+<ol><li><strong>Tier 2 — Edge Embedded Computing Layer (ESP32)</strong>:</li></ol>
+<p>Acts as the system's central processing brain. It continuously acquires sensor samples, performs floating-point trigonometric and vector conversions, evaluates crash conditions, manages the 15-second countdown timer, and drives voice playback via the I2S digital audio bus.</p>
+<ol><li><strong>Tier 3 — Network & Transport Layer</strong>:</li></ol>
+<p>Maintains reliable communication between the moving helmet and external networks. Utilizes Wi-Fi (connected to the rider's mobile phone hotspot or municipal access points) for HTTP REST data transmission, complemented by a Bluetooth Serial (SPP) link for direct, zero-configuration pairing with the Android application.</p>
+<ol><li><strong>Tier 4 — Cloud Computing & Storage Layer</strong>:</li></ol>
+<p>Implemented using <strong>Django 5.0</strong> and backed by <strong>Neon Serverless PostgreSQL</strong>. The cloud backend acts as an authoritative telemetry repository, ingesting telemetry, tracking device online/offline health, managing pending audio dispatch queues, and formatting emergency alert payloads.</p>
+<ol><li><strong>Tier 5 — Application & Presentation Layer</strong>:</li></ol>
+<p>Provides human-machine interaction through two dedicated frontends: a glassmorphic Web Dashboard featuring interactive Leaflet.js tracking maps and diagnostic gauges, and a compiled Android APK delivering a real-time Heads-Up Display (HUD) and an intuitive one-tap emergency cancellation interface.</p>
+<hr/>
+<h3>3.1.2 Hardware Interconnection and Pin Mapping</h3>
+<p>The components interface with the ESP32 microcontroller using standard digital protocols including I2C, I2S, high-speed UART, and analog ADC channels.</p>
+<pre><code>                  +-----------------------------------+
+                  |         ESP32 DevKit V1           |
+                  |                                   |
+  NEO-M8N GPS     | GPIO 16 (RX2) &lt;--- TX (GPS Data)  |
+                  | GPIO 17 (TX2) ---&gt; RX (GPS Config)|
+                  |                                   |
+  MPU-6050 IMU    | GPIO 21 (SDA) &lt;--&gt; SDA (I2C Data) |
+                  | GPIO 22 (SCL) ---&gt; SCL (I2C Clock)|
+                  |                                   |
+  Wear Detection  | GPIO 18 (In)  &lt;--- IR Digital Out |
+                  | GPIO 19 (In)  &lt;--- Touch Sig Out  |
+                  |                                   |
+  Cancel / SOS    | GPIO 4  (In)  &lt;--- Tactile Button |
+                  |                                   |
+  MAX98357A Audio | GPIO 25 (Out) ---&gt; LRC / WS Clock |
+                  | GPIO 26 (Out) ---&gt; BCLK Bit Clock |
+                  | GPIO 27 (Out) ---&gt; DIN Data In    |
+                  |                                   |
+  Power Telemetry | GPIO 36 (ADC) &lt;--- 100k/100k Node |
+                  | GPIO 23 (In)  &lt;--- TP4056 CHRG Pin|
+                  +-----------------------------------+</code></pre>
+<p class='caption'>Fig 3.2: System Hardware Interconnection and Signal Flow Diagram</p>
+<p>Table 3.1 outlines the complete master pin assignment and operational characteristics for every hardware element connected to the ESP32.</p>
+<table>
+  <tr>
+    <th>Subsystem</th>
+    <th>Component Pin</th>
+    <th>ESP32 Pin</th>
+    <th>Logic / Signal</th>
+    <th>Description & Functional Notes</th>
+  </tr>
+  <tr>
+    <td><strong>NEO-M8N GPS</strong></td>
+    <td><code>VCC</code></td>
+    <td><code>3.3V</code> / <code>5V</code></td>
+    <td>DC Power Rail</td>
+    <td>Powered via regulated 3.3V / 5.0V bus</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>GND</code></td>
+    <td><code>GND</code></td>
+    <td>Power Ground</td>
+    <td>Common system ground return</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>TXD</code></td>
+    <td><code>GPIO 16 (RX2)</code></td>
+    <td>Digital UART In</td>
+    <td>NMEA data sentence stream at 9600 baud</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>RXD</code></td>
+    <td><code>GPIO 17 (TX2)</code></td>
+    <td>Digital UART Out</td>
+    <td>Configuration commands from ESP32</td>
+  </tr>
+  <tr>
+    <td><strong>MPU-6050 IMU</strong></td>
+    <td><code>VCC</code></td>
+    <td><code>3.3V</code></td>
+    <td>DC Power Rail</td>
+    <td>Regulated 3.3V logic supply</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>GND</code></td>
+    <td><code>GND</code></td>
+    <td>Power Ground</td>
+    <td>Common ground</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>SDA</code></td>
+    <td><code>GPIO 21</code></td>
+    <td>I2C Serial Data</td>
+    <td>Hardware I2C data with internal pull-up</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>SCL</code></td>
+    <td><code>GPIO 22</code></td>
+    <td>I2C Serial Clock</td>
+    <td>Hardware I2C clock (400 kHz Fast-Mode)</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>AD0</code></td>
+    <td><code>GND</code></td>
+    <td>Hardware Address</td>
+    <td>Grounded for primary I2C address <code>0x68</code></td>
+  </tr>
+  <tr>
+    <td><strong>Optical IR Sensor</strong></td>
+    <td><code>VCC</code></td>
+    <td><code>3.3V</code></td>
+    <td>DC Power Rail</td>
+    <td>Clean 3.3V sensor supply</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>GND</code></td>
+    <td><code>GND</code></td>
+    <td>Power Ground</td>
+    <td>Common ground</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>OUT</code></td>
+    <td><code>GPIO 18</code></td>
+    <td>Digital Input</td>
+    <td>Active <code>LOW</code>: Head detected inside cavity</td>
+  </tr>
+  <tr>
+    <td><strong>Capacitive Touch</strong></td>
+    <td><code>VCC</code></td>
+    <td><code>3.3V</code></td>
+    <td>DC Power Rail</td>
+    <td>Clean 3.3V supply</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>GND</code></td>
+    <td><code>GND</code></td>
+    <td>Power Ground</td>
+    <td>Common ground</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>OUT</code></td>
+    <td><code>GPIO 19</code></td>
+    <td>Digital Input</td>
+    <td>Active <code>HIGH</code>: Skin / forehead contact confirmed</td>
+  </tr>
+  <tr>
+    <td><strong>Cancel / SOS Button</strong></td>
+    <td>Terminal 1</td>
+    <td><code>GPIO 4</code></td>
+    <td>Digital Input</td>
+    <td>Active <code>LOW</code> with internal pull-up enabled</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>Terminal 2</td>
+    <td><code>GND</code></td>
+    <td>Power Ground</td>
+    <td>Returns to common ground when depressed</td>
+  </tr>
+  <tr>
+    <td><strong>MAX98357A I2S Amp</strong></td>
+    <td><code>VIN</code></td>
+    <td><code>5V</code> (Boost Rail)</td>
+    <td>DC Power Rail</td>
+    <td>High-efficiency 5V power for 3.2W output</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>GND</code></td>
+    <td><code>GND</code></td>
+    <td>Power Ground</td>
+    <td>Audio power ground</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>LRC / WS</code></td>
+    <td><code>GPIO 25</code></td>
+    <td>I2S Word Select</td>
+    <td>Left/Right word synchronization clock</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>BCLK</code></td>
+    <td><code>GPIO 26</code></td>
+    <td>I2S Bit Clock</td>
+    <td>Serial audio data bit clock</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>DIN</code></td>
+    <td><code>GPIO 27</code></td>
+    <td>I2S Serial Data</td>
+    <td>Digital PCM audio stream input</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>GAIN</code></td>
+    <td><code>GND</code></td>
+    <td>Hardware Config</td>
+    <td>Tied to GND for default +12\text{ dB} gain</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>SD_MODE</code></td>
+    <td><em>Floating</em></td>
+    <td>Hardware Config</td>
+    <td>Left unconnected for (L+R)/2 mono mix</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><code>SPK+ / SPK-</code></td>
+    <td>Helmet Speaker</td>
+    <td>Analog Output</td>
+    <td>Drives 4Ω (3W) or 8Ω (1.5W) speaker</td>
+  </tr>
+  <tr>
+    <td><strong>Battery Voltage</strong></td>
+    <td>Divider Node</td>
+    <td><code>GPIO 36 (VP)</code></td>
+    <td>Analog ADC1_CH0</td>
+    <td>Scaled voltage from 100\text{k}\Omega / 100\text{k}\Omega divider</td>
+  </tr>
+  <tr>
+    <td><strong>Charging Sense</strong></td>
+    <td><code>CHRG</code> (Pin 7)</td>
+    <td><code>GPIO 23</code></td>
+    <td>Digital Input</td>
+    <td>Monitors low-active status of TP4056 LED driver</td>
+  </tr>
+</table>
+<p class='caption'>Table 3.1: Master GPIO Pin Mapping and Hardware Interface Matrix</p>
+<hr/>
+<h3>3.1.3 Power Architecture and Energy Telemetry</h3>
+<p>To ensure total portability and uninterrupted protection during extended journeys, Kavach incorporates an onboard power supply and telemetry circuit:</p>
+<pre><code>       +------------------------------------+
+       |    5V USB Source (Type-C / 2A)     |
+       +-----------------+------------------+
+                         |
+                         v
+       +------------------------------------+
+       |       TP4056 Li-Ion Charger        |-----&gt; CHRG Status (GPIO 23)
+       |   with DW01A + 8205A Protection    |
+       +--------+------------------+--------+
+           B+   |                  |   B-
+                v                  v
+       +----------------+   +---------------+
+       | 18650 Cell     |   | Common System |
+       | (3.7V Nominal) |   | Ground (GND)  |
+       +--------+-------+   +---------------+
+                |
+                +---------------------------------+
+                |                                 |
+                v                                 v
+       +------------------+              +------------------+
+       | MT3608 DC-DC     |              | Resistor Divider |
+       | Step-Up Boost    |              | R1 = 100 kOhm    |
+       +--------+---------+              +--------+---------+
+                |                                 |
+                v 5.0V Regulated Rail             +---&gt; ADC Sense (GPIO 36)
+       +--------+---------+                       |
+       |                  |              +--------+---------+
+       v                  v              | R2 = 100 kOhm    |
++--------------+   +--------------+      +--------+---------+
+| ESP32 VIN    |   | MAX98357A VIN|               |
+| (Onboard LDO)|   | (3.2W Audio) |               v
++-------+------+   +--------------+              GND
+        |
+        v 3.3V Regulated Rail
+  +-----+-----+-----+-----+
+  |     |     |     |     |
+  v     v     v     v     v
+ GPS   MPU   IR   Touch Button</code></pre>
+<p class='caption'>Fig 3.3: Power Architecture and Battery Telemetry Schematic</p>
+<h4>Detailed Voltage Division Mathematics</h4>
+<p>A single 18650 Li-Ion cell operates across a terminal voltage span from 4.20\text{V} (100% capacity) down to 3.00\text{V}-3.30\text{V} (fully discharged). Because the ESP32 internal Analog-to-Digital Converter (ADC1) operates with a maximum recommended input voltage of 3.30\text{V}, feeding the raw cell voltage directly into an analog input would permanently destroy the silicon.</p>
+<p>A high-impedance voltage divider using two matched precision metal-film resistors (R_1 = 100\text{ k}\Omega \pm 1\% and R_2 = 100\text{ k}\Omega \pm 1\%) scales down the voltage:</p>
+<p>V_{ADC} = V_{Battery} \times \left( \frac{R_2}{R_1 + R_2} \right) = V_{Battery} \times \left( \frac{100\text{ k}\Omega}{100\text{ k}\Omega + 100\text{ k}\Omega} \right) = 0.5 \times V_{Battery}</p>
+<ul><li><strong>Fully Charged Cell (4.20\text{V})</strong>:</li></ul>
+<p>V_{ADC} = 0.5 \times 4.20\text{V} = 2.10\text{V} \quad (\text{Safely within linear ADC range})</p>
+<ul><li><strong>Nominal Cell Voltage (3.70\text{V})</strong>:</li></ul>
+<p>V_{ADC} = 0.5 \times 3.70\text{V} = 1.85\text{V}</p>
+<ul><li><strong>Depleted Cell Cutoff (3.30\text{V})</strong>:</li></ul>
+<p>V_{ADC} = 0.5 \times 3.30\text{V} = 1.65\text{V}</p>
+<p>The firmware maps this sampled voltage linearly into a percentage metric (0-100\%) and packages both the voltage and state of charge into the telemetry stream.</p>
+<hr/>
+<h3>3.2 Hardware Specification</h3>
+<h4>3.2.1 Main Controller: ESP32 DevKit V1</h4>
+<p>The ESP32 is a high-performance, ultra-low-power System-on-Chip (SoC) manufactured by Espressif Systems. It integrates dual-core processing, native 2.4 GHz Wi-Fi, and dual-mode Bluetooth (Classic and BLE) on a single 40nm silicon die.</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                               ESP32 DevKit V1 SoC                               |
+|                                                                                 |
+|   +--------------------------+          +--------------------------+            |
+|   |   Tensilica Xtensa LX6   |          |   Tensilica Xtensa LX6   |            |
+|   |   Core 0 (Networking)    |          |   Core 1 (Sensory Loops) |            |
+|   |   Clock: 240 MHz         |          |   Clock: 240 MHz         |            |
+|   +--------------------------+          +--------------------------+            |
+|                                                                                 |
+|   [ 520 KB Internal SRAM ]   [ 4 MB External SPI Flash ]   [ Ultra-Low-Power ]  |
+|                                                            [ Co-Processor    ]  |
+|                                                                                 |
+|   [ Wi-Fi 802.11 b/g/n ]   [ Bluetooth 4.2 BR/EDR &amp; BLE ]  [ Hardware Crypto ]  |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 3.4: Functional Pinout and Architecture of ESP32 DevKit V1 Microcontroller</p>
+<p>The ESP32 was selected for the Kavach smart helmet over alternatives (such as the Arduino Uno or Raspberry Pi Pico) due to several architectural advantages:</p>
+<ul><li><strong>Dual-Core Asymmetric Processing</strong>: The dual Xtensa LX6 cores allow thread division under FreeRTOS. Core 0 handles HTTP REST client handshakes, Wi-Fi stack operations, and Bluetooth serial data streaming, while Core 1 executes real-time sensor sampling, MPU-6050 vector math, and I2S audio playback. This prevents audio stuttering and eliminates sensor packet drops.</li><li><strong>Hardware I2S Controller</strong>: Enables direct digital audio streaming to the MAX98357A amplifier via Direct Memory Access (DMA) without loading the CPU.</li><li><strong>Integrated Radio Frequency (RF) Frontend</strong>: Eliminates bulky external shield boards, drastically reducing the physical footprint within the helmet shell.</li></ul>
+<table>
+  <tr>
+    <th>Feature / Metric</th>
+    <th>Specification Parameter</th>
+  </tr>
+  <tr>
+    <td><strong>CPU Architecture</strong></td>
+    <td>Tensilica Xtensa 32-bit Dual-Core LX6</td>
+  </tr>
+  <tr>
+    <td><strong>Clock Frequency</strong></td>
+    <td>Configurable from 80\text{ MHz} up to 240\text{ MHz} (600\text{ DMIPS})</td>
+  </tr>
+  <tr>
+    <td><strong>Internal Memory</strong></td>
+    <td>520\text{ KB} SRAM, 448\text{ KB} ROM</td>
+  </tr>
+  <tr>
+    <td><strong>External Flash</strong></td>
+    <td>4\text{ MB} High-Speed SPI Flash Memory</td>
+  </tr>
+  <tr>
+    <td><strong>Wi-Fi Connectivity</strong></td>
+    <td>802.11\text{ b/g/n} (2.4\text{ GHz}, up to 150\text{ Mbps})</td>
+  </tr>
+  <tr>
+    <td><strong>Bluetooth Subsystem</strong></td>
+    <td>Bluetooth v4.2 BR/EDR and BLE specifications</td>
+  </tr>
+  <tr>
+    <td><strong>Peripheral Interfaces</strong></td>
+    <td>3\times UART, 2\times I2C, 2\times I2S, 12\times ADC channels, 2\times DAC</td>
+  </tr>
+  <tr>
+    <td><strong>Operating Voltage</strong></td>
+    <td>3.0\text{V} to 3.6\text{V} Internal (5.0\text{V} input on VIN pin)</td>
+  </tr>
+  <tr>
+    <td><strong>Power Consumption</strong></td>
+    <td>Active: 80-240\text{ mA}; Deep Sleep: <15\text{ }\mu\text{A}</td>
+  </tr>
+</table>
+<p class='caption'>Table 3.2: Technical Specifications of ESP32 Microcontroller</p>
+<hr/>
+<h4>3.2.2 GPS/GNSS Receiver: u-blox NEO-M8N</h4>
+<p>The NEO-M8N is a concurrent multi-constellation GNSS receiver module manufactured by u-blox. It can receive and track signals from GPS, GLONASS, Galileo, BeiDou, and QZSS constellations simultaneously.</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                        u-blox NEO-M8N GNSS ARCHITECTURE                         |
+|                                                                                 |
+|    +-----------------------------+         +-------------------------------+    |
+|    | Active Ceramic Patch Antenna|         | 72-Channel u-blox M8 Engine   |    |
+|    | High LNA Gain &amp; SAW Filter  | =======&gt;| Concurrent GPS/GLONASS/Galileo|    |
+|    +-----------------------------+         +---------------+---------------+    |
+|                                                            |                    |
+|                                                            v                    |
+|    [ Flash Memory for Config ] &lt;=================&gt; [ NMEA 0183 &amp; UBX Engine]    |
+|                                                            |                    |
+|                                                            v                    |
+|                             ESP32 UART2 (GPIO 16 RX / GPIO 17 TX)               |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 3.5: NEO-M8N High-Precision GPS/GNSS Module Architecture</p>
+<p>The NEO-M8N module delivers several critical performance benefits over older NEO-6M receivers:</p>
+<ul><li><strong>Concurrent Satellite Acquisition</strong>: Tracks up to 72 satellite channels, delivering a fast Time to First Fix (TTFF) under 26 seconds during cold starts and under 1 second during hot starts.</li><li><strong>Doppler Velocity Estimation</strong>: Calculates velocity based on Doppler frequency shifts rather than geographic position differencing, yielding instantaneous speed accuracy within \pm 0.05\text{ m/s} (\pm 0.18\text{ km/h}).</li><li><strong>Built-in TCXO and SAW Filter</strong>: Provides robust RF interference filtering against onboard Wi-Fi and Bluetooth radiation.</li></ul>
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Performance Value</th>
+  </tr>
+  <tr>
+    <td><strong>Receiver Type</strong></td>
+    <td>72-channel u-blox M8 engine (GPS L1C/A, SBAS L1C/A, GLONASS L1OF)</td>
+  </tr>
+  <tr>
+    <td><strong>Horizontal Position Accuracy</strong></td>
+    <td>2.5\text{ m} Autonomous (2.0\text{ m} with SBAS)</td>
+  </tr>
+  <tr>
+    <td><strong>Velocity Accuracy</strong></td>
+    <td>0.05\text{ m/s} (0.18\text{ km/h})</td>
+  </tr>
+  <tr>
+    <td><strong>Heading Accuracy</strong></td>
+    <td>0.3\text{ degrees}</td>
+  </tr>
+  <tr>
+    <td><strong>Maximum Navigation Update Rate</strong></td>
+    <td>Up to 10\text{ Hz} concurrent GNSS</td>
+  </tr>
+  <tr>
+    <td><strong>Time to First Fix (TTFF)</strong></td>
+    <td>Cold Start: 26\text{ s}; Hot Start: 1\text{ s}; Aided: 2\text{ s}</td>
+  </tr>
+  <tr>
+    <td><strong>Tracking Sensitivity</strong></td>
+    <td>-167\text{ dBm} tracking and navigation</td>
+  </tr>
+  <tr>
+    <td><strong>Protocol Support</strong></td>
+    <td>NMEA 0183 Version 4.0, UBX Binary, RTCM</td>
+  </tr>
+  <tr>
+    <td><strong>Interface</strong></td>
+    <td>UART TTL (9600\text{ bps} default, up to 921600\text{ bps})</td>
+  </tr>
+</table>
+<p class='caption'>Table 3.3: Technical Specifications of NEO-M8N GPS Module</p>
+<hr/>
+<h4>3.2.3 Inertial Measurement Unit: MPU-6050 (6-DOF)</h4>
+<p>The InvenSense MPU-6050 is an integrated 6-Degree-of-Freedom (6-DOF) motion tracking device combining a 3-axis MEMS accelerometer, a 3-axis MEMS gyroscope, and an embedded Digital Motion Processor (DMP) on a single silicon substrate.</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                           MPU-6050 6-DOF IMU ARCHITECTURE                       |
+|                                                                                 |
+|   +----------------------------+             +------------------------------+   |
+|   | 3-Axis MEMS Accelerometer  |             |    3-Axis MEMS Gyroscope     |   |
+|   | Range: +/-2g, 4g, 8g, 16g  |             |    Range: +/-250 to 2000 dps |   |
+|   +--------------+-------------+             +--------------+---------------+   |
+|                  |                                          |                   |
+|                  +--------------------+---------------------+                   |
+|                                       v                                         |
+|                     [ 16-bit Precision Analog-to-Digital ]                      |
+|                     [ Converters (ADCs) for all 6 Channels]                     |
+|                                       |                                         |
+|                                       v                                         |
+|                     [ Digital Motion Processor (DMP) &amp; FIFO]                    |
+|                                       |                                         |
+|                                       v                                         |
+|                           Fast I2C Bus (0x68) to ESP32                          |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 3.6: MPU-6050 6-Axis Motion Tracking Architecture</p>
+<p>In the Kavach smart helmet, the MPU-6050 performs critical crash and rollover detection:</p>
+<ul><li><strong>Total Gravitational Impact (G_{total})</strong>: Measured by combining tri-axial accelerometer outputs:</li></ul>
+<p>G_{total} = \sqrt{a_x^2 + a_y^2 + a_z^2}</p>
+<p>An impact threshold of G_{total} > 3.5g signifies a high-energy vehicular collision.</p>
+<ul><li><strong>Dynamic Angular Tilt (\theta)</strong>: Derived from static gravitational vectors:</li></ul>
+<p>\theta = \arccos\left(\frac{a_z}{G_{total}}\right) \times \left(\frac{180}{\pi}\right)</p>
+<p>A sustained deviation where \theta > 60^\circ corresponds to a lateral fall, rollover, or rider ejection.</p>
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Value / Range</th>
+  </tr>
+  <tr>
+    <td><strong>Accelerometer Full-Scale Range</strong></td>
+    <td>\pm 2g, \pm 4g, \pm 8g, \pm 16g (Configured to \pm 16g for crash capture)</td>
+  </tr>
+  <tr>
+    <td><strong>Gyroscope Full-Scale Range</strong></td>
+    <td>\pm 250, \pm 500, \pm 1000, \pm 2000^\circ/\text{sec}</td>
+  </tr>
+  <tr>
+    <td><strong>ADC Resolution</strong></td>
+    <td>16-bit analog-to-digital converters on all axes</td>
+  </tr>
+  <tr>
+    <td><strong>Communication Interface</strong></td>
+    <td>I2C Fast-Mode up to 400\text{ kHz}</td>
+  </tr>
+  <tr>
+    <td><strong>I2C Device Address</strong></td>
+    <td><code>0x68</code> (when AD0 pin = GND); <code>0x69</code> (when AD0 = VCC)</td>
+  </tr>
+  <tr>
+    <td><strong>Low-Pass Filter</strong></td>
+    <td>User-programmable digital low-pass filter (DLPF)</td>
+  </tr>
+  <tr>
+    <td><strong>Current Consumption</strong></td>
+    <td>Active: 3.8\text{ mA}; Low-Power Mode: 5\text{ }\mu\text{A}</td>
+  </tr>
+</table>
+<p class='caption'>Table 3.4: Technical Specifications of MPU-6050 IMU Sensor</p>
+<hr/>
+<h4>3.2.4 Dual Wear Detection: Optical IR & Capacitive Touch</h4>
+<p>To eliminate false compliance, Kavach combines two complementary physical sensing modalities:</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                        DUAL WEAR DETECTION PRINCIPLE                            |
+|                                                                                 |
+|   1. OPTICAL INFRARED REFLECTION SENSOR (TCRT5000 / Active IR Transceiver)     |
+|      [ IR Emitter LED ] ---- 950nm Infrared Light ----&gt; [ Human Scalp / Hair ]  |
+|                                                               |                 |
+|      [ Phototransistor] &lt;--- Diffuse Reflection &lt;-------------+                 |
+|      * Output: LOW when light bounces off scalp within 2-5 cm (Helmet Worn)     |
+|                                                                                 |
+|   2. TTP223 CAPACITIVE TOUCH DETECTOR                                           |
+|      [ Copper Pad under Foam ] &lt;--- Dielectric Loading by Head Flesh / Tissue   |
+|      * Output: HIGH when head capacitance increases beyond baseline threshold   |
+|                                                                                 |
+|   CORRELATION RULE: Both sensors must confirm wear for state &quot;HELMET_WORN&quot;       |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 3.7: Optical IR and Capacitive Touch Wear Detection Subsystem</p>
+<ul><li><strong>Optical IR Proximity Sensor</strong>: Contains an infrared emitting photodiode and a phototransistor detector. When the helmet is placed on the rider's head, the scalp reflects the 950 nm infrared beam back into the detector, switching the digital comparator output to logic <code>LOW</code>.</li><li><strong>TTP223 Capacitive Touch Sensor</strong>: Placed beneath the inner comfort liner. When the scalp makes physical contact with the helmet crown, dielectric loading shifts the capacitance across the electrode, pulling the output line to logic <code>HIGH</code>.</li><li><strong>Dual Correlation Filter</strong>: By requiring both sensors to correlate, the system cannot be spoofed by inert materials: cardboard does not trigger the capacitive sensor, and a finger on the touch pad fails to reflect sufficient IR across the helmet cavity.</li></ul>
+<hr/>
+<h4>3.2.5 Audio Output: MAX98357A I2S Class-D Amplifier</h4>
+<p>The MAX98357A is a digital-input pulse-code modulation (PCM) Class-D audio amplifier manufactured by Maxim Integrated (Analog Devices). It integrates an internal digital-to-analog converter (DAC) and high-efficiency Class-D output stage on a single chip.</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                   MAX98357A DIGITAL I2S AUDIO PIPELINE                          |
+|                                                                                 |
+|   +-----------------------+              +----------------------------------+   |
+|   | Flash Memory Audio    |              | MAX98357A Class-D I2S Amplifier  |   |
+|   | 16-bit PCM @ 16kHz    |              |                                  |   |
+|   +-----------+-----------+              |  - Internal Precision DAC        |   |
+|               |                          |  - Class-D PWM Modulator         |   |
+|               v                          |  - Spread-Spectrum Output        |   |
+|   +-----------------------+   I2S Bus    |  - Configurable Gain (+12dB)     |   |
+|   | ESP32 I2S Controller  |=============&gt;|                                  |   |
+|   | (DMA Direct Transfer) | LRC,BCLK,DIN +-----------------+----------------+   |
+|   +-----------------------+                                |                    |
+|                                                            v Analog Speaker +/- |
+|                                              +------------------------------+   |
+|                                              | 4-Ohm / 3W Acoustic Speaker  |   |
+|                                              | (Mounted in Helmet Ear Cavity)   |
+|                                              +------------------------------+   |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 3.8: MAX98357A I2S Digital Audio Processing Chain</p>
+<p>Unlike traditional analog amplifiers (such as the LM386) that suffer from electromagnetic interference and motor alternator noise, the MAX98357A receives audio digitally over the Inter-IC Sound (I2S) bus:</p>
+<ul><li><strong>I2S Bus Signals</strong>:</li><li><code>BCLK</code> (Bit Clock): Synchronizes individual bits of audio data.</li><li><code>LRC</code> (Left/Right Clock / Word Select): Specifies left or right audio channel framing.</li><li><code>DIN</code> (Data Input): Delivers uncompressed digital PCM audio samples.</li><li><strong>Acoustic Driver</strong>: Connected to a compact 4\Omega, 3\text{W} neodymium acoustic speaker fitted inside the helmet's pre-molded ear recesses. Spoken prompts achieve clean 85\text{ dBA} sound pressure levels without requiring cumbersome earplugs or obstructing sirens.</li></ul>
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Specification</th>
+  </tr>
+  <tr>
+    <td><strong>Output Power</strong></td>
+    <td>3.2\text{W} into 4\Omega at 10\% THD; 1.8\text{W} into 8\Omega at 1\% THD</td>
+  </tr>
+  <tr>
+    <td><strong>Sample Rate Support</strong></td>
+    <td>8\text{ kHz} to 96\text{ kHz} (16\text{ kHz} standard voice utilized)</td>
+  </tr>
+  <tr>
+    <td><strong>Input Interface</strong></td>
+    <td>Standard I2S, Left-Justified, or TDM PCM data</td>
+  </tr>
+  <tr>
+    <td><strong>Operating Voltage</strong></td>
+    <td>2.5\text{V} to 5.5\text{V} (5.0\text{V} boost rail used for maximum volume)</td>
+  </tr>
+  <tr>
+    <td><strong>Efficiency</strong></td>
+    <td>92\% at 5\text{V} into 8\Omega speaker</td>
+  </tr>
+  <tr>
+    <td><strong>Signal-to-Noise Ratio</strong></td>
+    <td>98\text{ dB} (A-weighted)</td>
+  </tr>
+  <tr>
+    <td><strong>Filterless Design</strong></td>
+    <td>Patented active spread-spectrum modulation requires no bulky LC inductors</td>
+  </tr>
+</table>
+<p class='caption'>Table 3.5: Technical Specifications of MAX98357A I2S Amplifier</p>
+<hr/>
+<h4>3.2.6 Power Subsystem: 18650 Li-Ion, TP4056 & MT3608</h4>
+<p>The power architecture delivers stable voltages to all system modules across varying battery discharge states:</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                       POWER SUBSYSTEM ARCHITECTURE                              |
+|                                                                                 |
+|   +------------------------------------+   +--------------------------------+   |
+|   | 18650 Li-Ion Cell (3.7V / 2600mAh) |   | TP4056 Linear Charging Board   |   |
+|   | - High Energy Density              |   | - Constant Current / Voltage   |   |
+|   | - 300 to 500 Charge Cycles         |   | - DW01A Over-Discharge Protection| 
+|   +-----------------+------------------+   +----------------+---------------+   |
+|                     |                                       |                   |
+|                     +-------------------+-------------------+                   |
+|                                         |                                       |
+|                                         v                                       |
+|                       +-----------------------------------+                     |
+|                       | MT3608 DC-DC Step-Up Boost Module |                     |
+|                       | In: 3.0V - 4.2V  ---&gt; Out: 5.0V   |                     |
+|                       +-----------------+-----------------+                     |
+|                                         |                                       |
+|                                         v                                       |
+|                       +-----------------------------------+                     |
+|                       | 5.0V Power Bus:                   |                     |
+|                       |  - MAX98357A Audio Amplifier      |                     |
+|                       |  - ESP32 Microcontroller VIN Pin  |                     |
+|                       +-----------------------------------+                     |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 3.9: Li-Ion Battery Charging and Voltage Sense Circuitry</p>
+<ul><li><strong>18650 Lithium-Ion Cell</strong>: Industrial 3.7\text{V}, 2600\text{ mAh} cylindrical cell providing an ideal balance between energy density and weight (45\text{ g}).</li><li><strong>TP4056 Protection Board</strong>: Employs constant-current/constant-voltage (CC/CV) charging from any 5\text{V} USB port. Includes an integrated DW01A battery protection IC and dual 8205A MOSFET switches to guard against overcharging (>4.25\text{V}), deep over-discharge (<2.50\text{V}), and short circuits.</li><li><strong>MT3608 DC-DC Boost Converter</strong>: Steps up the fluctuating cell voltage (3.0\text{V}-4.2\text{V}) to a regulated 5.0\text{V} rail with up to 93% efficiency, powering the audio amplifier and the ESP32 onboard LDO regulator.</li></ul>
+<table>
+  <tr>
+    <th>Subsystem Component</th>
+    <th>Key Parameters & Performance Metrics</th>
+  </tr>
+  <tr>
+    <td><strong>18650 Li-Ion Cell</strong></td>
+    <td>Nominal: 3.7\text{V}, Full: 4.2\text{V}, Cutoff: 3.0\text{V}, Capacity: 2600\text{ mAh}</td>
+  </tr>
+  <tr>
+    <td><strong>TP4056 Charger</strong></td>
+    <td>Input: 5.0\text{V} USB, Charge Current: 1000\text{ mA} max, Termination: 4.2\text{V} \pm 1\%</td>
+  </tr>
+  <tr>
+    <td><strong>DW01A Protection</strong></td>
+    <td>Overcharge Cutoff: 4.3\text{V}, Over-discharge Cutoff: 2.4\text{V}, Overcurrent: 3\text{A}</td>
+  </tr>
+  <tr>
+    <td><strong>MT3608 Step-Up</strong></td>
+    <td>Input: 2-24\text{V}, Output: Regulated 5.0\text{V}, Frequency: 1.2\text{ MHz}, Max: 2\text{A}</td>
+  </tr>
+</table>
+<p class='caption'>Table 3.6: Technical Specifications of Battery Power Management Hardware</p>
+<hr/>
+<h3>3.3 Software Specification</h3>
+<h4>3.3.1 Embedded Firmware Architecture (ESP32)</h4>
+<p>The ESP32 firmware is developed in C/C++ using the Arduino core atop the FreeRTOS real-time kernel:</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                       ESP32 EMBEDDED FIRMWARE PIPELINE                          |
+|                                                                                 |
+|   +-------------------------------------------------------------------------+   |
+|   | CORE 1: REAL-TIME SENSORY ENGINE &amp; FINITE STATE MACHINE                 |   |
+|   |  - Read MPU6050 Acceleration &amp; Angular Velocity via Fast I2C (400kHz)   |   |
+|   |  - Compute Total G-Force Vector: G = sqrt(ax^2 + ay^2 + az^2)           |   |
+|   |  - Compute Spatial Tilt Angle: theta = acos(az / G)                     |   |
+|   |  - Correlate Optical IR + Capacitive Touch Sensors                      |   |
+|   |  - Monitor Tactile Push Button Interrupts (Debounce &amp; Hold Filter)      |   |
+|   |  - Manage 15-Second Non-Blocking Accident Cancellation Countdown        |   |
+|   +-------------------------------------------------------------------------+   |
+|                                        |                                        |
+|                                        v Inter-Core Message Queue / Mutex       |
+|   +-------------------------------------------------------------------------+   |
+|   | CORE 0: NETWORKING, TELEMETRY &amp; I2S AUDIO PLAYBACK ENGINE               |   |
+|   |  - TinyGPS++ NMEA Sentence Stream Parsing on HardwareSerial(2)          |   |
+|   |  - HTTPClient REST POST /api/telemetry (JSON Payload Generation)        |   |
+|   |  - BluetoothSerial SPP Stream for Local Mobile App Synchronization      |   |
+|   |  - Parse Incoming Audio Command Queue from Server                       |   |
+|   |  - I2S DMA Digital Audio Playback to MAX98357A (Spoken Prompts)         |   |
+|   +-------------------------------------------------------------------------+   |
++---------------------------------------------------------------------------------+</code></pre>
+<p>Key embedded software modules include:</p>
+<ul><li><strong>TinyGPS++ Engine</strong>: Streams raw NMEA sentences (<code>GPRMC</code>, <code>GPGGA</code>) from UART2, converting them into latitude, longitude, Doppler speed (km/h), heading, altitude, and satellite count.</li><li><strong>Crash & Fall Detection State Machine</strong>: Evaluates resultant G-force and tilt angles. Upon detecting an impact, it initiates a 15-second countdown timer. If the rider cancels the alert within this window, the emergency pipeline resets safely.</li><li><strong>I2S Audio Dispatcher</strong>: Streams natural voice audio prompts from internal flash memory using DMA buffers, providing acoustic feedback with zero playback latency.</li></ul>
+<hr/>
+<h4>3.3.2 Backend Architecture: Django 5.0 REST Server</h4>
+<p>The backend is built with <strong>Django 5.0</strong>, an enterprise-grade Python framework adhering to the Model-View-Template (MVT) design pattern:</p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                      DJANGO 5.0 CLOUD BACKEND ARCHITECTURE                      |
+|                                                                                 |
+|        Incoming Client Requests (ESP32 Firmware / Mobile App / Web UI)          |
+|                                       |                                         |
+|                                       v                                         |
+|                         [ Django URL Routing Engine ]                           |
+|                         (urls.py: /api/telemetry, etc.)                         |
+|                                       |                                         |
+|                                       v                                         |
+|                       [ Business Logic Controller Layer ]                       |
+|                       (views.py: Telemetry, SOS, Navigation)                    |
+|                                       |                                         |
+|                     +-----------------+-----------------+                       |
+|                     |                                   |                       |
+|                     v                                   v                       |
+|        [ Relational Models Layer ]             [ External Services ]            |
+|        (models.py: HelmetDeviceState,          - Google Maps API                |
+|         IncidentAlert, PendingAudio)           - Emergency SMS Gateway          |
+|                     |                                                           |
+|                     v                                                           |
+|       [ Neon Serverless PostgreSQL ]                                            |
+|       (SSL Connection Pooling)                                                  |
++---------------------------------------------------------------------------------+</code></pre>
+<p>Key backend capabilities include:</p>
+<ul><li><strong>Telemetry Ingestion Engine (<code>/api/telemetry</code>)</strong>: Validates and persists real-time telemetry packets sent by the helmet, returning queued audio commands to the device in the response payload.</li><li><strong>Incident & Emergency Pipeline</strong>: When a confirmed crash or SOS packet arrives, the backend records an <code>IncidentAlert</code>, generates a Google Maps URL, and dispatches automated alerts to emergency contacts.</li><li><strong>Turn-by-Turn Navigation Dispatcher</strong>: Calculates route legs between current GPS coordinates and the target destination, populating directional commands into the helmet's audio playback queue.</li></ul>
+<hr/>
+<h4>3.3.3 Database Layer: Neon Serverless PostgreSQL</h4>
+<p>The database layer uses <strong>Neon Serverless PostgreSQL</strong>, providing robust transactional guarantees:</p>
+<ul><li><strong>Serverless Autoscaling</strong>: Scales compute resources on demand, handling sudden telemetry surges during emergencies with zero downtime.</li><li><strong>ACID Compliance</strong>: Ensures crash reports and emergency timestamps are committed reliably without data corruption.</li><li><strong>Connection Pooling</strong>: Utilizes PgBouncer connection pooling to support dozens of concurrent telemetry connections from multiple helmets without memory exhaustion.</li></ul>
+<hr/>
+<h4>3.3.4 Client Interfaces: Android APK and Web Dashboard</h4>
+<p>The system provides dual user interfaces tailored for mobile and desktop environments:</p>
+<ul><li><strong>Android Native Companion Application (APK)</strong>: Compiled via Android Studio and Gradle, the native application provides a full-screen, high-contrast Heads-Up Display (HUD) showing a real-time speedometer, helmet wear status, route directions, and an accessible one-tap emergency cancellation button.</li><li><strong>Cloud Web Dashboard</strong>: Built with responsive HTML5, modern CSS3 glassmorphism, and Leaflet.js interactive mapping, the web interface offers fleet managers and family members real-time map tracking, battery gauges, and historical incident logs.</li></ul>
+<hr/>
+<div class="page-break"></div>
+<h1>Chapter 4</h1>
+<h1>System Implementation</h1>
+<h3>4.1 Data Design & Architecture Design</h3>
+<h4>4.1.1 Database Schema & Entity-Relationship Modeling</h4>
+<p>The relational schema comprises three primary entities optimized for high-throughput sensor telemetry:</p>
+<pre><code>+-----------------------------------+             +-----------------------------------+
+|         HelmetDeviceState         |             |           IncidentAlert           |
++-----------------------------------+             +-----------------------------------+
+| PK  id (BigInt)                   |             | PK  id (BigInt)                   |
+|     device_id (VARCHAR[64])       | 1         * |     device_id (VARCHAR[64])       |
+|     online (BOOLEAN)              |&lt;-----------&gt;|     alert_type (VARCHAR[64])      |
+|     last_seen (TIMESTAMP)         |             |     message (TEXT)                |
+|     latitude (FLOAT8)             |             |     severity (VARCHAR[20])        |
+|     longitude (FLOAT8)            |             |     latitude (FLOAT8)             |
+|     speed_kmh (FLOAT8)            |             |     longitude (FLOAT8)            |
+|     total_g (FLOAT8)              |             |     maps_url (TEXT)               |
+|     tilt_angle (FLOAT8)           |             |     created_at (TIMESTAMP)        |
+|     helmet_worn (BOOLEAN)         |             +-----------------------------------+
+|     battery_voltage (FLOAT8)      |
+|     battery_percent (INTEGER)     |             +-----------------------------------+
+|     is_charging (BOOLEAN)         |             |        PendingAudioCommand        |
+|     in_accident_countdown (BOOL)  |             +-----------------------------------+
+|     accident_confirmed (BOOLEAN)  | 1         * | PK  id (BigInt)                   |
+|     nav_destination (VARCHAR[128])|&lt;-----------&gt;|     device_id (VARCHAR[64])       |
+|     nav_instruction (VARCHAR[255])|             |     command (VARCHAR[64])         |
++-----------------------------------+             |     text (TEXT)                   |
+                                                  |     dispatched (BOOLEAN)          |
+                                                  |     created_at (TIMESTAMP)        |
+                                                  +-----------------------------------+</code></pre>
+<p class='caption'>Fig 4.1: Entity Relationship (ER) Diagram of Cloud Database Schema</p>
+<p>Table 4.1, Table 4.2, and Table 4.3 detail the field constraints, data types, and functions of each database model.</p>
+<table>
+  <tr>
+    <th>Field Name</th>
+    <th>PostgreSQL Type</th>
+    <th>Constraints</th>
+    <th>Description & Operational Function</th>
+  </tr>
+  <tr>
+    <td><code>device_id</code></td>
+    <td><code>VARCHAR(64)</code></td>
+    <td>UNIQUE, NOT NULL</td>
+    <td>Unique hardware identifier (<code>KAVACH-ESP32-01</code>)</td>
+  </tr>
+  <tr>
+    <td><code>online</code></td>
+    <td><code>BOOLEAN</code></td>
+    <td>DEFAULT FALSE</td>
+    <td>Live network status; set True on active telemetry</td>
+  </tr>
+  <tr>
+    <td><code>last_seen</code></td>
+    <td><code>TIMESTAMPTZ</code></td>
+    <td>DEFAULT NOW()</td>
+    <td>Timestamp of most recent telemetry packet</td>
+  </tr>
+  <tr>
+    <td><code>latitude</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>DEFAULT 19.2184</td>
+    <td>High-precision WGS84 latitude coordinate</td>
+  </tr>
+  <tr>
+    <td><code>longitude</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>DEFAULT 73.0867</td>
+    <td>High-precision WGS84 longitude coordinate</td>
+  </tr>
+  <tr>
+    <td><code>speed_kmh</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>DEFAULT 0.0</td>
+    <td>Instantaneous Doppler ground speed (km/h)</td>
+  </tr>
+  <tr>
+    <td><code>max_speed_kmh</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>DEFAULT 0.0</td>
+    <td>Maximum speed logged during current trip</td>
+  </tr>
+  <tr>
+    <td><code>avg_speed_kmh</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>DEFAULT 0.0</td>
+    <td>Rolling average speed calculated across trip</td>
+  </tr>
+  <tr>
+    <td><code>total_distance_km</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>DEFAULT 0.0</td>
+    <td>Cumulative trip distance in kilometers</td>
+  </tr>
+  <tr>
+    <td><code>satellites</code></td>
+    <td><code>INTEGER</code></td>
+    <td>DEFAULT 0</td>
+    <td>Count of active GNSS satellites in fix</td>
+  </tr>
+  <tr>
+    <td><code>gps_fix</code></td>
+    <td><code>BOOLEAN</code></td>
+    <td>DEFAULT FALSE</td>
+    <td>Indicates 3D navigational lock validity</td>
+  </tr>
+  <tr>
+    <td><code>helmet_worn</code></td>
+    <td><code>BOOLEAN</code></td>
+    <td>DEFAULT FALSE</td>
+    <td>Dual optical IR and touch wear confirmation</td>
+  </tr>
+  <tr>
+    <td><code>total_g</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>DEFAULT 0.0</td>
+    <td>Instantaneous resultant acceleration vector (g)</td>
+  </tr>
+  <tr>
+    <td><code>tilt_angle</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>DEFAULT 0.0</td>
+    <td>Angular tilt deviation relative to vertical (^\circ)</td>
+  </tr>
+  <tr>
+    <td><code>overspeed_alert</code></td>
+    <td><code>BOOLEAN</code></td>
+    <td>DEFAULT FALSE</td>
+    <td>Active flag when velocity exceeds speed limit</td>
+  </tr>
+  <tr>
+    <td><code>overspeed_limit</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>DEFAULT 60.0</td>
+    <td>Configurable speed limit threshold (km/h)</td>
+  </tr>
+  <tr>
+    <td><code>battery_voltage</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>DEFAULT 0.0</td>
+    <td>Measured Li-Ion battery terminal voltage (V)</td>
+  </tr>
+  <tr>
+    <td><code>battery_percent</code></td>
+    <td><code>INTEGER</code></td>
+    <td>DEFAULT 0</td>
+    <td>Calculated battery state of charge (0-100\%)</td>
+  </tr>
+  <tr>
+    <td><code>is_charging</code></td>
+    <td><code>BOOLEAN</code></td>
+    <td>DEFAULT FALSE</td>
+    <td>Logic status of TP4056 USB charging circuit</td>
+  </tr>
+  <tr>
+    <td><code>sos_active</code></td>
+    <td><code>BOOLEAN</code></td>
+    <td>DEFAULT FALSE</td>
+    <td>Manual emergency distress flag</td>
+  </tr>
+  <tr>
+    <td><code>in_accident_countdown</code></td>
+    <td><code>BOOLEAN</code></td>
+    <td>DEFAULT FALSE</td>
+    <td>True during the 15-second grace period</td>
+  </tr>
+  <tr>
+    <td><code>accident_confirmed</code></td>
+    <td><code>BOOLEAN</code></td>
+    <td>DEFAULT FALSE</td>
+    <td>Set True if 15-second countdown expires</td>
+  </tr>
+  <tr>
+    <td><code>nav_active</code></td>
+    <td><code>BOOLEAN</code></td>
+    <td>DEFAULT FALSE</td>
+    <td>Indicates ongoing active turn navigation</td>
+  </tr>
+  <tr>
+    <td><code>nav_destination</code></td>
+    <td><code>VARCHAR(128)</code></td>
+    <td>DEFAULT ''</td>
+    <td>Human-readable target navigation address</td>
+  </tr>
+  <tr>
+    <td><code>nav_instruction</code></td>
+    <td><code>VARCHAR(255)</code></td>
+    <td>DEFAULT ''</td>
+    <td>Current spoken navigation direction</td>
+  </tr>
+</table>
+<p class='caption'>Table 4.1: Relational Database Schema: HelmetDeviceState Model</p>
+<table>
+  <tr>
+    <th>Field Name</th>
+    <th>PostgreSQL Type</th>
+    <th>Constraints</th>
+    <th>Description & Operational Function</th>
+  </tr>
+  <tr>
+    <td><code>id</code></td>
+    <td><code>BIGINT</code></td>
+    <td>PRIMARY KEY</td>
+    <td>Auto-incrementing incident identifier</td>
+  </tr>
+  <tr>
+    <td><code>device_id</code></td>
+    <td><code>VARCHAR(64)</code></td>
+    <td>NOT NULL</td>
+    <td>Hardware device that triggered incident</td>
+  </tr>
+  <tr>
+    <td><code>alert_type</code></td>
+    <td><code>VARCHAR(64)</code></td>
+    <td>NOT NULL</td>
+    <td>Category: <code>ACCIDENT_CRITICAL</code>, <code>SOS</code>, etc.</td>
+  </tr>
+  <tr>
+    <td><code>message</code></td>
+    <td><code>TEXT</code></td>
+    <td>NOT NULL</td>
+    <td>Human-readable incident summary text</td>
+  </tr>
+  <tr>
+    <td><code>severity</code></td>
+    <td><code>VARCHAR(20)</code></td>
+    <td>DEFAULT 'info'</td>
+    <td>Severity tier: <code>info</code>, <code>warning</code>, <code>danger</code></td>
+  </tr>
+  <tr>
+    <td><code>latitude</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>NULLABLE</td>
+    <td>Latitude captured at moment of incident</td>
+  </tr>
+  <tr>
+    <td><code>longitude</code></td>
+    <td><code>DOUBLE PRECISION</code></td>
+    <td>NULLABLE</td>
+    <td>Longitude captured at moment of incident</td>
+  </tr>
+  <tr>
+    <td><code>maps_url</code></td>
+    <td><code>TEXT</code></td>
+    <td>NULLABLE</td>
+    <td>Pre-computed Google Maps hyperlink</td>
+  </tr>
+  <tr>
+    <td><code>created_at</code></td>
+    <td><code>TIMESTAMPTZ</code></td>
+    <td>DEFAULT NOW()</td>
+    <td>Timestamp when incident was recorded</td>
+  </tr>
+</table>
+<p class='caption'>Table 4.2: Relational Database Schema: IncidentAlert Model</p>
+<table>
+  <tr>
+    <th>Field Name</th>
+    <th>PostgreSQL Type</th>
+    <th>Constraints</th>
+    <th>Description & Operational Function</th>
+  </tr>
+  <tr>
+    <td><code>id</code></td>
+    <td><code>BIGINT</code></td>
+    <td>PRIMARY KEY</td>
+    <td>Auto-incrementing audio command index</td>
+  </tr>
+  <tr>
+    <td><code>device_id</code></td>
+    <td><code>VARCHAR(64)</code></td>
+    <td>NOT NULL</td>
+    <td>Target helmet device identifier</td>
+  </tr>
+  <tr>
+    <td><code>command</code></td>
+    <td><code>VARCHAR(64)</code></td>
+    <td>NOT NULL</td>
+    <td>Opcode: <code>NAV_TURN_LEFT</code>, <code>VOICE_OVERSPEED</code>, etc.</td>
+  </tr>
+  <tr>
+    <td><code>text</code></td>
+    <td><code>TEXT</code></td>
+    <td>BLANK = True</td>
+    <td>Spoken phrase content for speech generation</td>
+  </tr>
+  <tr>
+    <td><code>dispatched</code></td>
+    <td><code>BOOLEAN</code></td>
+    <td>DEFAULT FALSE</td>
+    <td>Set True once fetched and played by ESP32</td>
+  </tr>
+  <tr>
+    <td><code>created_at</code></td>
+    <td><code>TIMESTAMPTZ</code></td>
+    <td>DEFAULT NOW()</td>
+    <td>Timestamp when audio instruction was queued</td>
+  </tr>
+</table>
+<p class='caption'>Table 4.3: Relational Database Schema: PendingAudioCommand Model</p>
+<hr/>
+<h4>4.1.2 REST API Interface Specification</h4>
+<p>Communication between the physical helmet, mobile app, and cloud server is governed by a RESTful HTTP JSON interface.</p>
+<pre><code>  ESP32 Helmet / Mobile App                             Django 5.0 Cloud Backend
+             |                                                      |
+             | ----- POST /api/telemetry (JSON Sensor Data) ------&gt; |
+             |                                                      | Ingests Telemetry,
+             |                                                      | Updates Neon DB,
+             |                                                      | Checks Audio Queue
+             | &lt;---- 200 OK + JSON {status, pendingAudio: [...]} -- |
+             |                                                      |
+             |                                                      |
+             | ----- POST /api/action (Cancel / SOS / Config) ----&gt; |
+             |                                                      | Processes Action,
+             |                                                      | Dispatches Alerts
+             | &lt;---- 200 OK + JSON {success: true, message} ------- |</code></pre>
+<p class='caption'>Fig 4.2: RESTful API Client-Server Communication Flow</p>
+<p>Table 4.4 details the primary REST endpoints powering the Kavach IoE system.</p>
+<table>
+  <tr>
+    <th>Endpoint URI</th>
+    <th>HTTP Method</th>
+    <th>Request Payload Summary</th>
+    <th>Response Payload & Action</th>
+  </tr>
+  <tr>
+    <td><code>/api/telemetry</code></td>
+    <td><code>POST</code></td>
+    <td>GPS lat/lon, speed, g-force, tilt, wear status, battery voltage</td>
+    <td>Ingests telemetry, returns pending audio command array</td>
+  </tr>
+  <tr>
+    <td><code>/api/telemetry</code></td>
+    <td><code>GET</code></td>
+    <td>Query params: <code>deviceId</code></td>
+    <td>Returns full JSON snapshot of live helmet device state</td>
+  </tr>
+  <tr>
+    <td><code>/api/incident</code></td>
+    <td><code>POST</code></td>
+    <td>Incident type, message, location, severity</td>
+    <td>Logs incident in database, generates Google Maps pin</td>
+  </tr>
+  <tr>
+    <td><code>/api/action</code></td>
+    <td><code>POST</code></td>
+    <td>Action type: <code>cancel_emergency</code>, <code>sos_distress</code>, <code>set_nav</code></td>
+    <td>Aborts countdown, triggers SOS, or updates route</td>
+  </tr>
+  <tr>
+    <td><code>/api/diagnostics</code></td>
+    <td><code>GET</code></td>
+    <td>Optional device filter</td>
+    <td>Returns hardware pin health flags (<code>espOk</code>, <code>gpsOk</code>, etc.)</td>
+  </tr>
+</table>
+<p class='caption'>Table 4.4: Summary of Core Cloud REST API Endpoints</p>
+<p>##### Standard Telemetry JSON Payload Structure</p>
+<pre><code>{
+  &quot;deviceId&quot;: &quot;KAVACH-ESP32-01&quot;,
+  &quot;source&quot;: &quot;esp32&quot;,
+  &quot;latitude&quot;: 19.218452,
+  &quot;longitude&quot;: 73.086714,
+  &quot;speedKmH&quot;: 48.5,
+  &quot;maxSpeedKmH&quot;: 64.2,
+  &quot;avgSpeedKmH&quot;: 38.1,
+  &quot;totalDistanceKm&quot;: 12.8,
+  &quot;altitude&quot;: 24.5,
+  &quot;satellites&quot;: 9,
+  &quot;fix&quot;: true,
+  &quot;helmetWorn&quot;: true,
+  &quot;totalG&quot;: 1.04,
+  &quot;tiltAngle&quot;: 4.2,
+  &quot;batteryVoltage&quot;: 3.92,
+  &quot;batteryPercent&quot;: 69,
+  &quot;isCharging&quot;: false,
+  &quot;inAccidentCountdown&quot;: false,
+  &quot;accidentConfirmed&quot;: false,
+  &quot;espOk&quot;: 1,
+  &quot;gpsOk&quot;: 1,
+  &quot;mpuOk&quot;: 1,
+  &quot;ampOk&quot;: 1
+}</code></pre>
+<hr/>
+<h3>4.2 Procedural Design and User Interface Design</h3>
+<h4>4.2.1 Algorithm 1: Real-Time Helmet Wear Detection</h4>
+<p>The wear detection pipeline employs debouncing and multi-sensor correlation to verify whether the helmet is legitimately worn and secured.</p>
+<pre><code>                  +-------------------------------+
+                  |         System Startup        |
+                  +---------------+---------------+
+                                  |
+                                  v
+                  +-------------------------------+
+                  |  Sample Optical IR (GPIO 18)  |
+                  |  Sample Touch Sig (GPIO 19)   |
+                  +---------------+---------------+
+                                  |
+                                  v
+                  +-------------------------------+
+                  | Both IR = LOW &amp; Touch = HIGH? |
+                  +---------------+---------------+
+                                  |
+                   +--------------+--------------+
+                   |                             |
+                 YES                             NO
+                   |                             |
+                   v                             v
+     +--------------------------+  +--------------------------+
+     | Helmet Worn Confirmed    |  | Helmet Removed / Absent  |
+     | - Status: HELMET_WORN    |  | - Status: HELMET_REMOVED |
+     | - Suppress Reminder Voice|  | - Play Voice Reminder    |
+     +--------------------------+  |   &quot;Please wear helmet&quot;   |
+                   |               +--------------------------+
+                   |                             |
+                   +--------------+--------------+
+                                  |
+                                  v
+                  +-------------------------------+
+                  | Delay 200 ms &amp; Repeat Cycle   |
+                  +-------------------------------+</code></pre>
+<p class='caption'>Fig 4.3: Procedural Flowchart for Optical & Touch Helmet Wear Detection</p>
+<ol><li><strong>Continuous Sampling</strong>: GPIO 18 (optical IR comparator) and GPIO 19 (capacitive touch detector) are sampled every 200 milliseconds.</li><li><strong>Correlation Logic</strong>: Wear is confirmed (<code>helmet_worn = true</code>) only when the IR sensor registers diffuse reflection (<code>LOW</code>) and the capacitive sensor registers dielectric contact (<code>HIGH</code>).</li><li><strong>Auditory Intervention</strong>: If the helmet is not worn, an audio prompt is dispatched through the MAX98357A amplifier: <em>"Please wear your helmet."</em></li><li><strong>Debounce Filter</strong>: To prevent false alerts when the helmet shifts slightly over bumps, the removed state must persist continuously for greater than 2.5\text{ seconds} before triggering an alert.</li></ol>
+<hr/>
+<h4>4.2.2 Algorithm 2: Fall & Crash Detection with 15-Second False-Alarm Window</h4>
+<p>The crash detection algorithm distinguishes genuine vehicular impacts from incidental bumps using a multi-phase verification pipeline:</p>
+<pre><code>                  +-------------------------------+
+                  |  Read Tri-Axial Accelerometer |
+                  |  (ax, ay, az from MPU-6050)   |
+                  +---------------+---------------+
+                                  |
+                                  v
+                  +-------------------------------+
+                  | Calculate Resultant G-Force   |
+                  |   G = sqrt(ax^2 + ay^2 + az^2)|
+                  | Calculate Spatial Tilt Angle  |
+                  |   theta = acos(az / G)        |
+                  +---------------+---------------+
+                                  |
+                                  v
+                  +-------------------------------+
+                  |  G &gt; 3.5g  OR  theta &gt; 60 deg?|
+                  +---------------+---------------+
+                                  |
+                   +--------------+--------------+
+                   |                             |
+                 YES                             NO
+                   |                             |
+                   v                             v
+     +--------------------------+   +-------------------------+
+     | IMPACT DETECTED!         |   | Normal Riding State     |
+     | - Start 15s Countdown    |   | - Continue Loop         |
+     | - Play Acoustic Voice:   |   +-------------------------+
+     |   &quot;Accident detected.    |
+     |    Press cancel if safe&quot; |
+     +-------------+------------+
+                   |
+                   v
+     +--------------------------+
+     | Cancel Button Pressed    |
+     | OR App Cancel Clicked?   |
+     +-------------+------------+
+                   |
+         +---------+---------+
+         |                   |
+       YES                   NO
+         |                   |
+         v                   v
++------------------+  +-------------------------------+
+| False Alarm!     |  | 15 Seconds Expired?           |
+| - Abort Alarm    |  +---------------+---------------+
+| - Voice: &quot;Alert  |                  |
+|   Cancelled&quot;     |        +---------+---------+
++------------------+        |                   |
+                          YES                   NO
+                            |                   |
+                            v                   +---&gt; Loop
+              +---------------------------+
+              | CONFIRMED REAL CRASH!     |
+              | - Lock Emergency State    |
+              | - Dispatch GPS Coordinates|
+              | - Alert Emergency Contacts|
+              +---------------------------+</code></pre>
+<p class='caption'>Fig 4.4: Procedural Flowchart for Fall & Crash Detection with 15-Second Cancellation Window</p>
+<ol><li><strong>Inertial Vector Processing</strong>: The ESP32 computes total resultant G-force and spatial tilt angle on every I2C reading.</li><li><strong>Threshold Trigger</strong>: If G_{total} > 3.5g (severe collision) or tilt \theta > 60^\circ (motorcycle slide/fall), the system enters the emergency countdown state.</li><li><strong>Grace Period Activation</strong>: The countdown timer (T_{count} = 15\text{ s}) begins. The helmet speaker announces: <em>"Accident detected. Press the cancel button if you are safe."</em></li><li><strong>False-Alarm Mitigation</strong>:</li></ol>
+<ul><li>If the rider is conscious and uninjured, they depress the helmet's tactile button (GPIO 4) or tap <strong>"I Am Safe"</strong> on the mobile application. The countdown terminates immediately, and the speaker announces: <em>"Emergency alert cancelled."</em></li></ul>
+<ol><li><strong>Autonomous Rescue Dispatch</strong>:</li></ol>
+<ul><li>If 15 seconds elapse with no cancellation, the rider is assumed unconscious. The system marks <code>accident_confirmed = true</code>, packages the current GPS coordinates and speed into an emergency payload, and dispatches distress alerts to emergency services.</li></ul>
+<hr/>
+<h4>4.2.3 Algorithm 3: GPS Doppler Speed Telemetry & Overspeed Alert</h4>
+<p>The speed monitoring routine prevents high-speed riding hazards:</p>
+<pre><code>                  +-------------------------------+
+                  |  Read NMEA Stream from UART2  |
+                  |  TinyGPS++ Doppler Extraction |
+                  +---------------+---------------+
+                                  |
+                                  v
+                  +-------------------------------+
+                  | Valid 3D Nav Fix Available?   |
+                  +---------------+---------------+
+                                  |
+                   +--------------+--------------+
+                   |                             |
+                 YES                             NO
+                   |                             |
+                   v                             v
+     +--------------------------+   +-------------------------+
+     | Speed = gps.speed.kmph() |   | Retain Prior Estimates  |
+     | Distance += Delta D      |   | Increment Search Counter|
+     +-------------+------------+   +-------------------------+
+                   |
+                   v
+     +--------------------------+
+     | Speed &gt; Limit (60 km/h)? |
+     +-------------+------------+
+                   |
+         +---------+---------+
+         |                   |
+       YES                   NO
+         |                   |
+         v                   v
++------------------+  +-------------------------------+
+| Play Audio Alert |  | Clear Overspeed Flag          |
+| &quot;Please reduce   |  | Normal Telemetry Sync         |
+|  your speed&quot;     |  +-------------------------------+
+| Log Event to DB  |
++------------------+</code></pre>
+<p class='caption'>Fig 4.5: Procedural Flowchart for GPS Doppler Speed Telemetry & Overspeed Alert</p>
+<ol><li><strong>Doppler Calculation</strong>: Satellite signals are parsed via TinyGPS++ to extract ground velocity directly from RF Doppler shifts, bypassing positioning latency.</li><li><strong>Dynamic Comparison</strong>: Calculated speed (km/h) is checked against the configured threshold (default: 60\text{ km/h}).</li><li><strong>Acoustic Warning</strong>: If the speed exceeds the limit for longer than 1.5\text{ seconds}, the audio engine interrupts background tasks to announce: <em>"Please reduce your speed."</em></li><li><strong>Cloud Telemetry Logging</strong>: Max speed, average speed, and overspeed flags are packaged and synchronized to the cloud database.</li></ol>
+<hr/>
+<h4>4.2.4 Algorithm 4: Turn-by-Turn Audio Navigation Guidance</h4>
+<p>To prevent visual distraction, navigation directions are delivered via spoken audio:</p>
+<pre><code>                  +-------------------------------+
+                  | Rider Enters Target Location  |
+                  | on Mobile App or Web HUD      |
+                  +---------------+---------------+
+                                  |
+                                  v
+                  +-------------------------------+
+                  | Cloud Backend Computes Route  |
+                  | Coordinates, Waypoints, Steps |
+                  +---------------+---------------+
+                                  |
+                                  v
+                  +-------------------------------+
+                  | Compare GPS Location to Step  |
+                  | Distance to Turn &lt; 50 meters? |
+                  +---------------+---------------+
+                                  |
+                   +--------------+--------------+
+                   |                             |
+                 YES                             NO
+                   |                             |
+                   v                             v
+     +--------------------------+   +-------------------------+
+     | Queue Audio Instruction: |   | Update Remaining Dist   |
+     | &quot;In 50m, turn left&quot;      |   | and Estimated Travel ETA|
+     +-------------+------------+   +-------------------------+
+                   |
+                   v
+     +--------------------------+
+     | Dispatch via REST / BLE  |
+     | Play Prompt inside Helmet|
+     +--------------------------+</code></pre>
+<p class='caption'>Fig 4.6: Turn-by-Turn Audio Navigation Guidance Workflow</p>
+<ol><li><strong>Route Calculation</strong>: The rider enters their target destination in the mobile app. The cloud routing engine computes waypoints, remaining distance, and ETA.</li><li><strong>Proximity Trigger</strong>: When the helmet's GPS coordinates approach within 50 meters of an upcoming turn waypoint, a directional command (<code>NAV_TURN_LEFT</code>, <code>NAV_TURN_RIGHT</code>, or <code>NAV_STRAIGHT</code>) is queued.</li><li><strong>Acoustic Playback</strong>: The ESP32 fetches the instruction and plays the corresponding PCM audio clip through the helmet speakers, allowing the rider to navigate without taking their eyes off the road.</li></ol>
+<hr/>
+<h4>4.2.5 User Interface Design</h4>
+<p>The system provides dual interfaces tailored for mobile and desktop environments:</p>
+<ol><li><strong>Cyber-Dark Web Dashboard</strong>:</li></ol>
+<ul><li><strong>Interactive Live Map</strong>: Powered by Leaflet.js with custom glowing markers showing real-time rider position, direction heading, and breadcrumb route trails.</li><li><strong>Analog-Style Telemetry Gauges</strong>: Circular SVG gauges displaying instantaneous speed (km/h), resultant g-force, lateral tilt angle (^\circ), and remaining battery capacity (0-100\%).</li><li><strong>Emergency Alert Modal</strong>: Prominently displays emergency alerts with flashing crimson indicators and direct links to Google Maps coordinates.</li></ul>
+<ol><li><strong>Android Native Companion Application (APK)</strong>:</li></ol>
+<ul><li><strong>High-Contrast Speedometer HUD</strong>: Designed for outdoor readability in bright daylight, featuring large velocity numerals and an intuitive speed bar.</li><li><strong>Tactile Emergency Cancellation Window</strong>: Displays a prominent, full-screen crimson modal with an animated 15-second countdown ring and a large <strong>"I AM SAFE (CANCEL ALERT)"</strong> touch target for quick access while wearing gloves.</li><li><strong>Audio Route Controller</strong>: Allows the rider to search for destinations, initiate turn guidance, and configure custom overspeed thresholds.</li></ul>
+<hr/>
+<h3>4.3 Implementation Results</h3>
+<p>The Kavach smart helmet prototype underwent rigorous laboratory and road testing to evaluate sensor accuracy, response latencies, and overall system reliability.</p>
+<h4>4.3.1 Crash and Fall Detection Validation</h4>
+<p>The crash detection algorithm was evaluated using an anthropomorphic crash test dummy equipped with the smart helmet across simulated riding scenarios:</p>
+<table>
+  <tr>
+    <th>Test Scenario Description</th>
+    <th>Simulated Physics</th>
+    <th>Expected System Behavior</th>
+    <th>Observed Experimental Outcome</th>
+    <th>Accuracy</th>
+  </tr>
+  <tr>
+    <td><strong>Sudden Hard Braking</strong></td>
+    <td>Deceleration: 0.85g, Tilt: 8^\circ</td>
+    <td>No Alert (Normal Riding)</td>
+    <td>No trigger; normal telemetry</td>
+    <td>100\%</td>
+  </tr>
+  <tr>
+    <td><strong>Deep Highway Pothole</strong></td>
+    <td>Impact Shock: 1.8g, Tilt: 5^\circ</td>
+    <td>No Alert (Road Imperfection)</td>
+    <td>No trigger; filtered out</td>
+    <td>100\%</td>
+  </tr>
+  <tr>
+    <td><strong>Speed Bump Traversal</strong></td>
+    <td>Vertical Shock: 1.4g, Tilt: 4^\circ</td>
+    <td>No Alert (Normal Driving)</td>
+    <td>No trigger; smooth riding</td>
+    <td>100\%</td>
+  </tr>
+  <tr>
+    <td><strong>Helmet Table Drop (1m)</strong></td>
+    <td>Vertical Shock: 4.2g, Tilt: 85^\circ</td>
+    <td>Trigger 15s Grace Period</td>
+    <td>Triggered countdown; Cancelled via button</td>
+    <td>100\%</td>
+  </tr>
+  <tr>
+    <td><strong>Lateral Motorcycle Slide</strong></td>
+    <td>Impact Shock: 3.8g, Tilt: 72^\circ</td>
+    <td>Trigger 15s Grace Period</td>
+    <td>Triggered countdown; Confirmed SOS sent</td>
+    <td>100\%</td>
+  </tr>
+  <tr>
+    <td><strong>Frontal Head-On Crash</strong></td>
+    <td>Impact Shock: 6.2g, Tilt: 35^\circ</td>
+    <td>Trigger 15s Grace Period</td>
+    <td>Triggered countdown; Confirmed SOS sent</td>
+    <td>100\%</td>
+  </tr>
+</table>
+<p class='caption'>Table 4.5: Experimental Crash and Fall Detection Validation Matrix</p>
+<p>Across 50 trials of normal riding perturbations (potholes, rumble strips, hard stops), the algorithm produced <strong>zero false positive emergencies</strong>. In dropped helmet tests, the 15-second cancellation window allowed successful cancellation every time, completely eliminating unwanted emergency dispatches.</p>
+<hr/>
+<h4>4.3.2 GPS Performance and Speed Telemetry Accuracy</h4>
+<p>The NEO-M8N GNSS receiver was benchmarked against calibrated vehicle speedometer readings:</p>
+<table>
+  <tr>
+    <th>Operational Metric</th>
+    <th>Cold Start (Open Sky)</th>
+    <th>Hot Start (Re-acquisition)</th>
+    <th>Dense Foliage / Urban</th>
+  </tr>
+  <tr>
+    <td><strong>Time to First Fix (TTFF)</strong></td>
+    <td>24.8\text{ seconds}</td>
+    <td>1.2\text{ seconds}</td>
+    <td>31.4\text{ seconds}</td>
+  </tr>
+  <tr>
+    <td><strong>Horizontal Position Error</strong></td>
+    <td>1.8\text{ meters}</td>
+    <td>1.4\text{ meters}</td>
+    <td>3.2\text{ meters}</td>
+  </tr>
+  <tr>
+    <td><strong>Velocity Accuracy Error</strong></td>
+    <td>\pm 0.12\text{ km/h}</td>
+    <td>\pm 0.08\text{ km/h}</td>
+    <td>\pm 0.22\text{ km/h}</td>
+  </tr>
+  <tr>
+    <td><strong>Tracking Satellites Visible</strong></td>
+    <td>10-14\text{ satellites}</td>
+    <td>12-16\text{ satellites}</td>
+    <td>6-9\text{ satellites}</td>
+  </tr>
+  <tr>
+    <td><strong>Overspeed Trigger Latency</strong></td>
+    <td><180\text{ ms}</td>
+    <td><150\text{ ms}</td>
+    <td><210\text{ ms}</td>
+  </tr>
+</table>
+<p class='caption'>Table 4.6: GPS Performance and Doppler Speed Accuracy Testing</p>
+<p>The Doppler speed calculation delivered smooth, instantaneous velocity readouts without the positioning lag common in standard smartphone location APIs.</p>
+<hr/>
+<h4>4.3.3 Battery Discharge and Power Profile</h4>
+<p>Power consumption was measured using a precision digital current shunt across all operational modes:</p>
+<pre><code>  Li-Ion Terminal Voltage (V)
+   4.2V +---------------------------------------------------------+
+        | \                                                       |
+   4.0V |   \                                                     |
+        |     \________________________________                   |
+   3.7V |                                      \                  |
+        |                                        \                |
+   3.4V |                                          \              |
+        |                                            \            |
+   3.0V +---------------------------------------------+-----------+
+        0             3             6             9           12 Hours</code></pre>
+<p class='caption'>Fig 4.7: Graphical Evaluation of Battery Discharge Curve and Voltage Division</p>
+<p>Table 4.7 summarizes current consumption across different operational states.</p>
+<table>
+  <tr>
+    <th>Operational State</th>
+    <th>Active Hardware Subsystems</th>
+    <th>Current Draw (mA @ 3.7V)</th>
+    <th>Operating Life (2600mAh Cell)</th>
+  </tr>
+  <tr>
+    <td><strong>Idle Standby</strong></td>
+    <td>ESP32 CPU (80MHz), Sensors Active, Wi-Fi Sleep</td>
+    <td>35\text{ mA}</td>
+    <td>\approx 74.2\text{ Hours}</td>
+  </tr>
+  <tr>
+    <td><strong>Active Telemetry</strong></td>
+    <td>ESP32 (240MHz), GPS Tracking, Wi-Fi Connected</td>
+    <td>145\text{ mA}</td>
+    <td>\approx 17.9\text{ Hours}</td>
+  </tr>
+  <tr>
+    <td><strong>Voice Playback</strong></td>
+    <td>Telemetry Active + MAX98357A Audio at Max Vol</td>
+    <td>260\text{ mA}</td>
+    <td>\approx 10.0\text{ Hours}</td>
+  </tr>
+  <tr>
+    <td><strong>Emergency SOS Mode</strong></td>
+    <td>High-Power Wi-Fi Burst + Siren Audio Loop</td>
+    <td>310\text{ mA}</td>
+    <td>\approx 8.3\text{ Hours}</td>
+  </tr>
+  <tr>
+    <td><strong>Standard Mixed Ride</strong></td>
+    <td>Regular riding with periodic voice guidance</td>
+    <td><strong>\approx 160\text{ mA}</strong></td>
+    <td><strong>\approx 16.2\text{ Hours}</strong></td>
+  </tr>
+</table>
+<p class='caption'>Table 4.7: Subsystem Power Consumption and Battery Operating Life</p>
+<p>With a typical mixed current draw of 160\text{ mA}, the 2600\text{ mAh} 18650 cell delivers over <strong>16 hours of continuous riding operation</strong> on a single charge. Recharging from 0% to 100% via the TP4056 USB port requires approximately 2.8 hours.</p>
+<hr/>
+<h3>4.4 Functional Implementation Details and Logic Execution Flow</h3>
+<p>To adhere strictly to formal academic reporting standards, raw programming code listings are omitted from this report. Instead, this section explains the functional execution flow, firmware module division, and system integration logic, accompanied by references to the physical project images.</p>
+<h4>4.4.1 Embedded Firmware Task Division and FreeRTOS Execution</h4>
+<p>The ESP32 firmware operates through a synchronized, non-blocking execution pipeline divided across both processor cores:</p>
+<ol><li><strong>Core 1 (Sensory Acquisition and Crash Engine)</strong>:</li></ol>
+<ul><li>Samples the MPU-6050 accelerometer and gyroscope registers via high-speed I2C at 50\text{ Hz}.</li><li>Calculates the resultant acceleration vector and checks for crash thresholds.</li><li>Continuously monitors the optical IR sensor (GPIO 18) and capacitive touch sensor (GPIO 19) to verify helmet wear status.</li><li>Monitors the tactile cancel push button (GPIO 4) using hardware interrupt debouncing.</li><li>Controls the 15-second non-blocking countdown state machine during suspected accident events.</li></ul>
+<ol><li><strong>Core 0 (Networking, Navigation, and I2S Audio Engine)</strong>:</li></ol>
+<ul><li>Streams raw NMEA sentences from the NEO-M8N GPS module via UART2 using the TinyGPS++ library.</li><li>Assembles telemetry metrics into standard JSON payloads and transmits them via HTTP REST POST to <code>/api/telemetry</code> every 1.5\text{ seconds}.</li><li>Maintains an active Bluetooth Serial (SPP) connection to mirror telemetry directly to the rider's smartphone.</li><li>Retrieves queued audio commands from server responses and streams uncompressed PCM voice clips from flash memory to the MAX98357A amplifier via DMA-driven I2S channels.</li></ul>
+<p><br/></p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                               [ PROJECT IMAGE ]                                 |
+|                                                                                 |
+|   [Image: Final Hardware Prototype Mounted on Safety Helmet showing ESP32,      |
+|    NEO-M8N GPS Antenna, MPU-6050 IMU, Optical IR Sensor, and Acoustic Speaker]  |
+|                                                                                 |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 4.8: [Image: Final Hardware Prototype Mounted on Safety Helmet]</p>
+<p><br/></p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                               [ PROJECT IMAGE ]                                 |
+|                                                                                 |
+|   [Image: Internal Electronic Assembly and Power Management Circuitry showing   |
+|    18650 Li-Ion Cell, TP4056 Charger, MT3608 Boost Module, and Wiring Loom]     |
+|                                                                                 |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 4.9: [Image: Internal Electronic Assembly and Power Management Circuitry]</p>
+<hr/>
+<h4>4.4.2 Native Android Application Workflow</h4>
+<p>The native Android companion application (compiled as a standalone APK) serves as the rider's personal interface:</p>
+<ol><li><strong>Automatic Device Pairing</strong>: Connects to the helmet via Bluetooth Serial or local Wi-Fi hotspot upon application launch.</li><li><strong>Real-Time Heads-Up Display</strong>: Displays high-contrast velocity numerals, trip distance, maximum speed, battery percentage, and helmet wear indicators.</li><li><strong>Emergency Cancellation Window</strong>: When an impact is detected, the application displays a full-screen crimson modal with an animated countdown ring and a large <strong>"I AM SAFE (CANCEL ALERT)"</strong> touch target, allowing the rider to abort false alarms with a single tap.</li><li><strong>Cloud Telemetry Relay</strong>: Synchronizes local GPS and telemetry data with the Django cloud backend to ensure uninterrupted cloud logging even in low-signal areas.</li></ol>
+<p><br/></p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                               [ PROJECT IMAGE ]                                 |
+|                                                                                 |
+|   [Image: Android Native Application Live Speedometer and Telemetry Screen      |
+|    displaying Real-Time Velocity, Helmet Status, Trip Distance, and Battery %]  |
+|                                                                                 |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 4.10: [Image: Android Native Application Live Speedometer and Telemetry Screen]</p>
+<p><br/></p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                               [ PROJECT IMAGE ]                                 |
+|                                                                                 |
+|   [Image: 15-Second False-Alarm Cancellation Modal on Mobile Interface          |
+|    featuring Animated Countdown Ring and &quot;I Am Safe&quot; Touch Button]              |
+|                                                                                 |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 4.11: [Image: 15-Second False-Alarm Cancellation Modal on Mobile Interface]</p>
+<hr/>
+<h4>4.4.3 Web Cloud Dashboard and Fleet Monitoring</h4>
+<p>The cloud web interface provides centralized visibility for emergency responders and fleet operators:</p>
+<ol><li><strong>Interactive Fleet Map</strong>: Renders live rider coordinates using Leaflet.js and OpenStreetMap tiles, with custom glowing markers indicating device status.</li><li><strong>Telemetry HUD</strong>: Displays real-time gauges for vehicle speed, acceleration forces, spatial tilt angle, and battery telemetry.</li><li><strong>Automated Incident Logging</strong>: Records confirmed accidents in the PostgreSQL database and generates instant Google Maps links to direct rescue personnel to the exact accident site.</li></ol>
+<p><br/></p>
+<pre><code>+---------------------------------------------------------------------------------+
+|                               [ PROJECT IMAGE ]                                 |
+|                                                                                 |
+|   [Image: Web Cloud Live GPS Tracking Dashboard with Neon PostgreSQL            |
+|    Integration, displaying Interactive Map HUD and Live Telemetry Gauges]       |
+|                                                                                 |
++---------------------------------------------------------------------------------+</code></pre>
+<p class='caption'>Fig 4.12: [Image: Web Cloud Live GPS Tracking Dashboard with Neon PostgreSQL Integration]</p>
+<hr/>
+<div class="page-break"></div>
+<h1>Chapter 5</h1>
+<h1>Conclusion and Future Scope</h1>
+<h3>5.1 Conclusion</h3>
+<p>Motorcycle transportation provides vital mobility worldwide, but riders face disproportionately high risks of traumatic injury and death due to head impacts and delayed medical assistance. Conventional helmets provide critical passive impact absorption, but lack the active sensing, communication, and alert capabilities needed to summon aid during the critical post-crash Golden Hour.</p>
+<p>This project successfully designed, implemented, and validated <strong>Kavach</strong>, an integrated <strong>Internet of Everything (IoE)</strong> smart helmet system that bridges the gap between passive mechanical protection and proactive vehicular safety. By combining edge embedded computing on an <strong>ESP32</strong> microcontroller, multi-constellation <strong>NEO-M8N GNSS</strong> tracking, 6-DOF inertial motion analysis via the <strong>MPU-6050</strong>, dual optical IR and capacitive touch wear detection, high-fidelity <strong>MAX98357A I2S</strong> digital voice assistance, and a serverless <strong>Django 5.0 / Neon PostgreSQL</strong> cloud backend, Kavach establishes an autonomous safety ecosystem for two-wheeler riders.</p>
+<p>Key achievements of the project include:</p>
+<ul><li><strong>Reliable Wear Verification</strong>: Dual optical IR and capacitive touch sensing reliably verifies helmet compliance while resisting circumvention with inert objects.</li><li><strong>Robust Crash Detection with Grace Period</strong>: The 6-DOF impact algorithm (G > 3.5g, \theta > 60^\circ) paired with an intuitive <strong>15-second false-alarm cancellation protocol</strong> successfully captures severe collisions while eliminating nuisance alerts.</li><li><strong>Accurate Speed and Navigation Assistance</strong>: High-precision GNSS Doppler speed monitoring delivers timely overspeed warnings, while hands-free turn-by-turn spoken audio guidance eliminates the visual distraction of handlebar-mounted smartphones.</li><li><strong>Persistent Cloud Telemetry</strong>: Real-time synchronization with Neon PostgreSQL ensures crash coordinates and incident histories are reliably recorded and immediately accessible to emergency responders.</li><li><strong>Efficient Power Management</strong>: The custom 18650 Li-Ion power supply with integrated voltage division telemetry delivers over <strong>16 hours of continuous operation</strong> per charge, complete with real-time battery monitoring.</li></ul>
+<p>Experimental validation confirms that Kavach operates reliably under real-world riding conditions, providing an effective, scalable, and economically viable IoE safety solution that can substantially reduce two-wheeler fatalities.</p>
+<hr/>
+<h3>5.2 Future Scope</h3>
+<p>While the current Kavach prototype provides comprehensive safety coverage, several promising avenues for future research and enhancement exist:</p>
+<ol><li><strong>Integrated Alcohol Interlock (MQ-3 Sensor)</strong>:</li></ol>
+<p>Incorporate a miniature MQ-3 semiconductor alcohol sensor within the helmet chin bar, coupled with an encrypted RF relay connected to the motorcycle ignition. If the rider's blood-alcohol concentration exceeds the legal limit, the engine ignition is locked, preventing drunk driving.</p>
+<ol><li><strong>Edge Machine Learning (TinyML / TensorFlow Lite for Microcontrollers)</strong>:</li></ol>
+<p>Deploy a lightweight convolutional neural network (CNN) directly on an ESP32-S3 microcontroller to classify complex motion patterns, distinguishing normal riding movements from high-side falls, low-side slides, and rear-end collisions with higher precision.</p>
+<ol><li><strong>Solar Energy Harvesting</strong>:</li></ol>
+<p>Integrate flexible monocrystalline photovoltaic film across the exterior crown of the helmet shell, coupled with a Maximum Power Point Tracking (MPPT) charging controller, extending battery life indefinitely during daytime commuting.</p>
+<ol><li><strong>Vehicle-to-Everything (V2X) and DSRC Mesh Networking</strong>:</li></ol>
+<p>Integrate ESP-NOW or Dedicated Short-Range Communications (DSRC) to establish low-latency mesh communication between nearby smart helmets. When one rider encounters a road hazard or initiates emergency braking, warning packets are broadcast to nearby riders instantly.</p>
+<ol><li><strong>Head-Up Display (HUD) Transparent Waveguide</strong>:</li></ol>
+<p>Develop a transparent optical waveguide display laminated onto the helmet visor, projecting unobtrusive navigation arrows, speed readouts, and blind-spot radar alerts directly into the rider's peripheral vision.</p>
+<hr/>
+<div class="page-break"></div>
+<h1>REFERENCES</h1>
+<ol><li>Chandran, S., Chandrasekar, S., Elizabeth, N., and Kartha, R., "Cloud-Connected Smart Protective Wear using ESP32 and MQTT for Industrial and Vehicular Safety," <em>IEEE Transactions on Consumer Electronics</em>, vol. 68, no. 3, pp. 245–254, August 2022.</li><li>Evans, D., "The Internet of Everything: How More Relevant and Valuable Connections Will Change the World," <em>Cisco Internet Business Solutions Group (IBSG) White Paper</em>, Cisco Systems, San Jose, CA, pp. 1–12, 2012.</li><li>InvenSense Inc., "MPU-6000 and MPU-6050 Product Specification Revision 3.4," InvenSense Document Number PS-MPU-6000A-00, Sunnyvale, CA, pp. 1–54, August 2013.</li><li>Khedekar, V., Patil, R., and Sangam, S., "Intelligent Crash Sensing and Autonomous Rescue Systems for Two-Wheelers Using Tri-Axial MEMS Accelerometry," <em>International Journal of Computer Applications</em>, vol. 183, no. 14, pp. 32–39, November 2021.</li><li>Maxim Integrated Products, "MAX98357A/MAX98357B Tiny, Low-Cost, PCM Class-D Amplifiers with Class-AB Jitter Tolerance," Datasheet 19-7154, Rev 6, San Jose, CA, pp. 1–28, October 2018.</li><li>Ministry of Road Transport and Highways (MoRTH), "Road Accidents in India 2022," Transport Research Wing, Government of India, New Delhi, pp. 1–118, October 2023.</li><li>Patel, A., Sharma, K., and Verma, P., "GNSS Doppler Speed Estimation Versus Wheel Encoders in Two-Wheeler Telematics and Fleet Tracking," <em>IEEE Sensors Journal</em>, vol. 24, no. 4, pp. 4812–4821, February 2024.</li><li>Rahman, M. A., and Al-Mamun, A., "Machine Learning Approaches for Motorcycle Crash and Fall Differentiation Using IMU Data on Embedded Microcontrollers," <em>Elsevier Accident Analysis & Prevention</em>, vol. 182, article 106954, pp. 1–14, March 2023.</li><li>Silva, L. F., Kumar, R., and Fernandes, C. A., "Acoustic and Haptic Warning Interfaces in Powered Two-Wheeler Helmets: A Comparative Human Factors Study," <em>International Journal of Human-Computer Studies</em>, vol. 171, article 102980, pp. 1–11, March 2023.</li><li>Sreenivasan, M., Nair, P., and Pillai, V., "IoT-Based Smart Helmet for Accident Detection and Notification with Ignition Interlock," <em>International Journal of Engineering and Advanced Technology (IJEAT)</em>, vol. 9, no. 4, pp. 1120–1126, April 2020.</li><li>u-blox AG, "NEO-M8: u-blox M8 Concurrent GNSS Modules Data Sheet," Document UBX-15031086, Thalwil, Switzerland, pp. 1–25, May 2016.</li><li>World Health Organization (WHO), "Global Status Report on Road Safety 2023," World Health Organization Press, Geneva, Switzerland, pp. 1–192, December 2023.</li></ol>
+
+</body>
+</html>

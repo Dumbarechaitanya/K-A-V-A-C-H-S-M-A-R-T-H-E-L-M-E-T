@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Sound Engine Instance
   const soundEngine = typeof HelmetAudioEngine !== 'undefined' ? new HelmetAudioEngine() : null;
 
-  const DEFAULT_BACKEND_URL = 'http://192.168.0.106:3000';
+  const DEFAULT_BACKEND_URL = 'https://kavach-smart-helmet-django.onrender.com';
   const initialServerUrl = (function() {
     try {
       const saved = localStorage.getItem('kavach_server_url');
@@ -499,6 +499,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.navSelectedDesc) els.navSelectedDesc.textContent = `${distKm} km road distance • ~${etaMins} mins travel time`;
 
     speakVoicePrompt(`Route planned via road to ${destName}. Distance: ${distKm} kilometers, ETA: ${etaMins} minutes.`);
+
+    // Sync active road route to Django backend & Browser Dashboard!
+    syncDestinationToBackend(destLat, destLng, destName, true, parseFloat(distKm), etaMins, firstInstruction);
+  }
+
+  // Sync Destination to Backend & Browser Dashboard in Real-Time
+  async function syncDestinationToBackend(lat, lng, name, active = true, distKm = 0.0, etaMins = 0, instruction = '') {
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
+    try {
+      await fetch(`${baseUrl}/api/navigation/destination/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+          active: active,
+          destinationName: name,
+          destLat: lat,
+          destLng: lng,
+          distanceKm: distKm,
+          etaMinutes: etaMins,
+          instruction: instruction,
+          latitude: state.latitude,
+          longitude: state.longitude,
+          source: 'mobile_app'
+        })
+      });
+    } catch (e) {
+      console.warn('Failed to sync destination to backend:', e);
+    }
   }
 
   // Set Destination (from Map Click or Search)
@@ -546,6 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resolved && state.destination && state.destination.lat === lat && state.destination.lng === lng) {
           state.destination.name = resolved;
           if (els.navSelectedName) els.navSelectedName.textContent = resolved;
+          syncDestinationToBackend(lat, lng, resolved, true, parseFloat(state.navDistanceMeters ? (state.navDistanceMeters/1000).toFixed(1) : 0), state.navEtaMinutes || 0, state.navInstruction);
         }
       });
     }
@@ -554,6 +586,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Clear Destination / Cancel Navigation
   function clearDestination() {
     state.destination = null;
+
+    // Notify backend & browser dashboard that destination was cleared
+    syncDestinationToBackend(0, 0, '', false);
 
     if (destMarker && leafletMap) {
       leafletMap.removeLayer(destMarker);
@@ -746,7 +781,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (onlineResults.length === 0 && localMatches.length === 0) {
       try {
         const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
-        const proxyUrl = `${baseUrl}/api/navigation/search?q=${encodeURIComponent(query)}`;
+        const proxyUrl = `${baseUrl}/api/navigation/search?q=${encodeURIComponent(query)}&lat=${curLat}&lon=${curLng}`;
         const res2 = await fetch(proxyUrl);
         if (res2.ok) {
           const data2 = await res2.json();
@@ -777,12 +812,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // If exact single match, select directly; otherwise show dropdown of options
-    if (combined.length === 1 && (combined[0].name.toLowerCase() === qLower || qLower.length < 15)) {
+    // If exact single match and matches query, select directly; otherwise show dropdown of options
+    if (combined.length === 1 && combined[0].name.toLowerCase() === qLower) {
       setDestination(combined[0].lat, combined[0].lng, combined[0].name);
     } else {
       renderSearchResults(combined);
-      // If user typed a specific name and the first result is a strong match, also auto-route while keeping dropdown visible
+      // If user typed a specific college/landmark name and the first result is a strong match
       const first = combined[0];
       if (qLower.includes('jondhale') && first.name.toLowerCase().includes('jondhale')) {
         setDestination(first.lat, first.lng, first.name);
@@ -1016,6 +1051,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update Live NMEA Sentences
     updateNmeaSentences();
+
+    // Periodically sync live GPS position & active navigation to Django Backend
+    syncMobileGpsToBackend();
+  }
+
+  let lastMobileGpsSyncMs = 0;
+  function syncMobileGpsToBackend() {
+    if (!state.latitude || !state.longitude) return;
+    const now = Date.now();
+    if (now - lastMobileGpsSyncMs < 2500) return;
+    lastMobileGpsSyncMs = now;
+
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
+    fetch(`${baseUrl}/api/telemetry/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        deviceId: state.deviceId,
+        source: 'mobile_app_gps',
+        latitude: state.latitude,
+        longitude: state.longitude,
+        speed: state.speedKmH,
+        heading: state.headingDeg || 0,
+        altitude: state.altitudeMeters || 0,
+        satellites: state.satellitesCount,
+        fix: state.hasGpsFix,
+        navActive: Boolean(state.destination),
+        destinationName: state.destination ? state.destination.name : '',
+        destLat: state.destination ? state.destination.lat : null,
+        destLng: state.destination ? state.destination.lng : null
+      })
+    }).catch(() => {});
   }
 
   function handleNeoM8nLocationError(error) {
@@ -1647,6 +1717,13 @@ document.addEventListener('DOMContentLoaded', () => {
           altitude: state.altitudeMeters || 0,
           satellites: state.satellitesCount,
           fix: state.hasGpsFix,
+          navActive: Boolean(state.destination),
+          destinationName: state.destination ? state.destination.name : '',
+          destLat: state.destination ? state.destination.lat : null,
+          destLng: state.destination ? state.destination.lng : null,
+          distanceKm: state.navDistanceMeters ? parseFloat((state.navDistanceMeters / 1000).toFixed(1)) : 0.0,
+          etaMinutes: state.navEtaMinutes || 0,
+          instruction: state.navInstruction || '',
           espOk: state.lastHwDiag.espOk,
           ampOk: state.lastHwDiag.ampOk,
           mpuOk: state.lastHwDiag.mpuOk,

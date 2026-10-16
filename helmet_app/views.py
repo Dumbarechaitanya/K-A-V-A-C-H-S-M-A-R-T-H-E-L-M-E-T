@@ -63,25 +63,18 @@ def api_telemetry(request):
 
         source = data.get('source', '')
 
-        # Mark device online ONLY if the packet is genuinely from the physical ESP32 or Bluetooth serial link
-        # Mobile app client polling/location updates must NEVER mark the helmet online
-        if source in ('esp32', 'bluetooth_serial', 'mobile_app_bluetooth'):
+        # Mark device online if telemetry is received from ESP32 or Mobile App Companion
+        if source in ('esp32', 'bluetooth_serial', 'mobile_app_bluetooth', 'mobile_app', 'mobile_app_gps'):
             state.online = True
             state.last_seen = now
-        elif source == 'mobile_app':
-            # Do not touch online or last_seen; client is just a display/companion
-            pass
-        else:
-            # Fallback: only if actual physical sensor telemetry is present in the payload
-            if 'totalG' in data or 'helmetWorn' in data or 'batteryVoltage' in data or 'espOk' in data:
-                state.online = True
-                state.last_seen = now
+        elif 'latitude' in data or 'totalG' in data or 'helmetWorn' in data or 'batteryVoltage' in data or 'espOk' in data:
+            state.online = True
+            state.last_seen = now
 
-        # Ingest 1/0 Hardware Component Connection Status for Diagnostics (only if provided by hardware)
-        if source != 'mobile_app':
-            for key in ['espOk', 'ampOk', 'mpuOk', 'gpsOk', 'irRaw', 'touchRaw', 'touchInst']:
-                if key in data:
-                    latest_hardware_diagnostics[key] = int(data[key])
+        # Ingest 1/0 Hardware Component Connection Status for Diagnostics (if provided)
+        for key in ['espOk', 'ampOk', 'mpuOk', 'gpsOk', 'irRaw', 'touchRaw', 'touchInst']:
+            if key in data:
+                latest_hardware_diagnostics[key] = int(data[key])
 
         # GPS Data
         if 'latitude' in data and 'longitude' in data:
@@ -192,6 +185,33 @@ def api_telemetry(request):
                 maps_url=maps_url
             )
 
+        # Navigation Destination Sync (from Mobile App)
+        if 'navActive' in data:
+            state.nav_active = bool(data['navActive'])
+            if state.nav_active:
+                if 'destLat' in data and data['destLat'] is not None:
+                    state.dest_latitude = float(data['destLat'])
+                if 'destLng' in data and data['destLng'] is not None:
+                    state.dest_longitude = float(data['destLng'])
+                if 'destinationName' in data:
+                    state.nav_destination = str(data['destinationName'])
+                if 'distanceKm' in data:
+                    state.nav_dist_rem_km = float(data['distanceKm'])
+                if 'etaMinutes' in data:
+                    state.nav_eta_mins = int(data['etaMinutes'])
+                if 'instruction' in data:
+                    state.nav_instruction = str(data['instruction'])
+                if 'turnType' in data:
+                    state.nav_turn_type = str(data['turnType'])
+            else:
+                state.dest_latitude = None
+                state.dest_longitude = None
+                state.nav_destination = ''
+                state.nav_dist_rem_km = 0.0
+                state.nav_eta_mins = 0
+                state.nav_instruction = 'Ready — Select destination'
+                state.nav_turn_type = ''
+
         state.save()
 
         # Fetch pending audio commands for ESP32
@@ -215,8 +235,8 @@ def api_telemetry_latest(request):
     state = get_or_create_device_state()
     now = timezone.now()
     seconds_since_last_seen = (now - state.last_seen).total_seconds()
-    # Device is considered truly online only if telemetry was received in the last 10 seconds
-    is_online = seconds_since_last_seen < 10
+    # Device is considered truly online only if telemetry was received in the last 15 seconds
+    is_online = seconds_since_last_seen < 15
 
     if state.online != is_online:
         state.online = is_online
@@ -229,16 +249,16 @@ def api_telemetry_latest(request):
         'lastSeen': state.last_seen.isoformat(),
         'hardwareDiagnostics': latest_hardware_diagnostics if is_online else None,
         'gps': {
-            'latitude': state.latitude if is_online else None,
-            'longitude': state.longitude if is_online else None,
+            'latitude': state.latitude,
+            'longitude': state.longitude,
             'speedKmH': state.speed_kmh if is_online else 0.0,
-            'maxSpeedKmH': state.max_speed_kmh if is_online else 0.0,
-            'avgSpeedKmH': state.avg_speed_kmh if is_online else 0.0,
-            'totalDistanceKm': state.total_distance_km if is_online else 0.0,
-            'altitudeMeters': state.altitude_m if is_online else None,
+            'maxSpeedKmH': state.max_speed_kmh,
+            'avgSpeedKmH': state.avg_speed_kmh,
+            'totalDistanceKm': state.total_distance_km,
+            'altitudeMeters': state.altitude_m,
             'satellites': state.satellites if is_online else 0,
             'fix': state.gps_fix if is_online else False,
-            'heading': state.heading if is_online else None
+            'heading': state.heading
         },
         'sensors': {
             'helmetWorn': state.helmet_worn if is_online else None,
@@ -262,6 +282,8 @@ def api_telemetry_latest(request):
         'navigation': {
             'active': state.nav_active,
             'destinationName': state.nav_destination if state.nav_active else '',
+            'destLat': state.dest_latitude if state.nav_active else None,
+            'destLng': state.dest_longitude if state.nav_active else None,
             'distanceRemainingKm': state.nav_dist_rem_km if state.nav_active else 0.0,
             'etaMinutes': state.nav_eta_mins if state.nav_active else 0,
             'instruction': state.nav_instruction if state.nav_active else 'Ready — Select destination',
@@ -462,54 +484,203 @@ def api_health(request):
     })
 
 
+@csrf_exempt
+def api_navigation_destination(request):
+    """
+    Rider selects or clears destination from Mobile App / Android App.
+    Instantly persists to Neon DB and reflects on the Web Dashboard in real time.
+    """
+    state = get_or_create_device_state()
+    now = timezone.now()
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = request.POST.dict()
+
+        active = bool(data.get('active', True))
+        state.nav_active = active
+
+        if active:
+            state.nav_destination = str(data.get('destinationName', data.get('name', 'Selected Location')))
+            if 'destLat' in data and 'destLng' in data and data['destLat'] is not None and data['destLng'] is not None:
+                state.dest_latitude = float(data['destLat'])
+                state.dest_longitude = float(data['destLng'])
+            state.nav_dist_rem_km = float(data.get('distanceKm', data.get('distKm', 0.0)))
+            state.nav_eta_mins = int(data.get('etaMinutes', data.get('etaMins', 0)))
+            state.nav_instruction = str(data.get('instruction', f"Head towards {state.nav_destination}"))
+            state.nav_turn_type = str(data.get('turnType', 'DESTINATION'))
+        else:
+            state.dest_latitude = None
+            state.dest_longitude = None
+            state.nav_destination = ''
+            state.nav_dist_rem_km = 0.0
+            state.nav_eta_mins = 0
+            state.nav_instruction = 'Ready — Select destination'
+            state.nav_turn_type = ''
+
+        # Update rider current location if sent along with destination
+        if 'latitude' in data and 'longitude' in data and data['latitude'] is not None and data['longitude'] is not None:
+            state.latitude = float(data['latitude'])
+            state.longitude = float(data['longitude'])
+            state.last_seen = now
+            state.online = True
+
+        state.save()
+
+        # Create alert event so dashboard log shows destination set/cleared
+        if active:
+            IncidentAlert.objects.create(
+                device_id=state.device_id,
+                alert_type='NAVIGATION_SET',
+                message=f"Navigation destination selected: {state.nav_destination} ({state.nav_dist_rem_km:.1f} km, ETA {state.nav_eta_mins} mins)",
+                severity='info',
+                latitude=state.latitude,
+                longitude=state.longitude
+            )
+        else:
+            IncidentAlert.objects.create(
+                device_id=state.device_id,
+                alert_type='NAVIGATION_CLEARED',
+                message="Navigation destination cleared by rider.",
+                severity='info',
+                latitude=state.latitude,
+                longitude=state.longitude
+            )
+
+        return JsonResponse({
+            'success': True,
+            'active': state.nav_active,
+            'destinationName': state.nav_destination,
+            'destLat': state.dest_latitude,
+            'destLng': state.dest_longitude,
+            'distanceKm': state.nav_dist_rem_km,
+            'etaMinutes': state.nav_eta_mins,
+            'instruction': state.nav_instruction
+        })
+
+    elif request.method == 'GET':
+        return JsonResponse({
+            'active': state.nav_active,
+            'destinationName': state.nav_destination,
+            'destLat': state.dest_latitude,
+            'destLng': state.dest_longitude,
+            'distanceRemainingKm': state.nav_dist_rem_km,
+            'etaMinutes': state.nav_eta_mins,
+            'instruction': state.nav_instruction,
+            'turnType': state.nav_turn_type
+        })
+
+    return JsonResponse({'error': 'POST or GET required'}, status=405)
+
+
 def api_navigation_search(request):
-    """Proxy geocoding search to avoid client-side CORS/User-Agent issues"""
+    """
+    Proxy geocoding search to avoid client-side CORS/User-Agent issues.
+    Enhanced with locality, proximity viewbox, and Indian subcontinent prioritization
+    so searches for places like 'hospital', 'college', 'station' return accurate nearby locations.
+    """
     query = request.GET.get('q', '').strip()
     if not query:
         return JsonResponse({'results': []})
 
-    import urllib.request, urllib.parse
+    try:
+        user_lat = float(request.GET.get('lat', request.GET.get('latitude', 19.2184)))
+        user_lon = float(request.GET.get('lon', request.GET.get('lng', request.GET.get('longitude', 73.0867))))
+    except (ValueError, TypeError):
+        user_lat, user_lon = 19.2184, 73.0867
+
+    import urllib.request, urllib.parse, math
     headers = {'User-Agent': 'KavachSmartHelmet/1.0 (kavach-iot-project)'}
     results = []
 
-    # 1. Try Nominatim with custom User-Agent
+    def calc_dist(lat1, lon1, lat2, lon2):
+        r = 6371.0
+        d_lat = math.radians(lat2 - lat1)
+        d_lon = math.radians(lon2 - lon1)
+        a = (math.sin(d_lat / 2) ** 2 +
+             math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * (math.sin(d_lon / 2) ** 2))
+        return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    # 1. First attempt: Nominatim biased to India and nearby viewbox
     try:
-        url = f"https://nominatim.openstreetmap.org/search?format=json&q={urllib.parse.quote(query)}&limit=5"
+        min_lon = user_lon - 0.8
+        max_lat = user_lat + 0.8
+        max_lon = user_lon + 0.8
+        min_lat = user_lat - 0.8
+        viewbox = f"{min_lon:.4f},{max_lat:.4f},{max_lon:.4f},{min_lat:.4f}"
+
+        encoded_q = urllib.parse.quote(query)
+        url = (f"https://nominatim.openstreetmap.org/search?format=json"
+               f"&q={encoded_q}&countrycodes=in&viewbox={viewbox}&bounded=0&limit=7")
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=4) as resp:
             data = json.loads(resp.read().decode())
             for item in data:
                 name = item.get('display_name', '').split(',')[0].strip()
+                lat_val = float(item.get('lat'))
+                lon_val = float(item.get('lon'))
                 results.append({
                     'name': name,
                     'display_name': item.get('display_name', ''),
-                    'lat': float(item.get('lat')),
-                    'lon': float(item.get('lon'))
+                    'lat': lat_val,
+                    'lon': lon_val,
+                    'dist_km': round(calc_dist(user_lat, user_lon, lat_val, lon_val), 1)
                 })
     except Exception:
         pass
 
-    # 2. If Nominatim empty or failed, fallback to Photon API
+    # 2. If no results, try Photon API with coordinate proximity bias
     if not results:
         try:
-            p_url = f"https://photon.komoot.io/api/?q={urllib.parse.quote(query)}&lat=19.218&lon=73.086&limit=5"
-            req = urllib.request.Request(p_url)
+            encoded_q = urllib.parse.quote(query)
+            p_url = f"https://photon.komoot.io/api/?q={encoded_q}&lat={user_lat}&lon={user_lon}&limit=8"
+            req = urllib.request.Request(p_url, headers=headers)
             with urllib.request.urlopen(req, timeout=4) as resp:
                 data = json.loads(resp.read().decode())
                 for f in data.get('features', []):
-                    p = f['properties']
-                    c = f['geometry']['coordinates']
-                    name = p.get('name') or p.get('city') or query
-                    city = p.get('city', '')
+                    p = f.get('properties', {})
+                    c = f.get('geometry', {}).get('coordinates', [0, 0])
+                    name = p.get('name') or p.get('street') or query
+                    city = p.get('city') or p.get('state') or ''
                     display = f"{name}, {city}".strip(', ')
+                    lat_val = float(c[1])
+                    lon_val = float(c[0])
                     results.append({
                         'name': name,
                         'display_name': display,
-                        'lat': float(c[1]),
-                        'lon': float(c[0])
+                        'lat': lat_val,
+                        'lon': lon_val,
+                        'dist_km': round(calc_dist(user_lat, user_lon, lat_val, lon_val), 1)
                     })
         except Exception:
             pass
+
+    # 3. If still empty, try global Nominatim
+    if not results:
+        try:
+            encoded_q = urllib.parse.quote(query)
+            url = f"https://nominatim.openstreetmap.org/search?format=json&q={encoded_q}&limit=5"
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                data = json.loads(resp.read().decode())
+                for item in data:
+                    name = item.get('display_name', '').split(',')[0].strip()
+                    lat_val = float(item.get('lat'))
+                    lon_val = float(item.get('lon'))
+                    results.append({
+                        'name': name,
+                        'display_name': item.get('display_name', ''),
+                        'lat': lat_val,
+                        'lon': lon_val,
+                        'dist_km': round(calc_dist(user_lat, user_lon, lat_val, lon_val), 1)
+                    })
+        except Exception:
+            pass
+
+    # Sort results by proximity so closest places are at the top
+    results.sort(key=lambda x: x.get('dist_km', 99999))
 
     return JsonResponse({'results': results})
 

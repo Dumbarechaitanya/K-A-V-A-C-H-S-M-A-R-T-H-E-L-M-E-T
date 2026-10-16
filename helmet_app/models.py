@@ -47,6 +47,8 @@ class HelmetDeviceState(models.Model):
     # Navigation State
     nav_active = models.BooleanField(default=False)
     nav_destination = models.CharField(max_length=128, default='')
+    dest_latitude = models.FloatField(null=True, blank=True)
+    dest_longitude = models.FloatField(null=True, blank=True)
     nav_dist_rem_km = models.FloatField(default=0.0)
     nav_eta_mins = models.IntegerField(default=0)
     nav_instruction = models.CharField(max_length=255, default='Ready — Select destination')

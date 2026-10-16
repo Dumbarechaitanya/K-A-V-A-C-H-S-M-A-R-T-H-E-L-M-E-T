@@ -278,6 +278,11 @@ document.addEventListener('DOMContentLoaded', () => {
       polyline.addLatLng([lat, lng]);
     }
 
+    // Update navigation route polyline start if destination is active
+    if (navRoutePolyline && state.navigation.active && state.navigation.destLat) {
+      navRoutePolyline.setLatLngs([[lat, lng], [state.navigation.destLat, state.navigation.destLng]]);
+    }
+
     // Update HUD
     els.hudLat.textContent = `${lat.toFixed(5)}° N`;
     els.hudLng.textContent = `${lng.toFixed(5)}° E`;
@@ -520,6 +525,85 @@ document.addEventListener('DOMContentLoaded', () => {
     addLog('NAVIGATION', `Voice Guidance: "${step.inst}"`, 'info');
   }
 
+  // Dashboard Live Navigation Sync (from Mobile App or Cloud Server)
+  let navRoutePolyline = null;
+  function updateDashboardNavigation(navData) {
+    if (!navData) return;
+
+    if (navData.active && navData.destLat && navData.destLng) {
+      state.navigation.active = true;
+      state.navigation.destinationName = navData.destinationName || 'Selected Destination';
+      state.navigation.destLat = parseFloat(navData.destLat);
+      state.navigation.destLng = parseFloat(navData.destLng);
+      state.navigation.distanceRemainingKm = parseFloat(navData.distanceRemainingKm) || 0.0;
+      state.navigation.etaMinutes = parseInt(navData.etaMinutes) || 0;
+      state.navigation.instruction = navData.instruction || `Head towards ${state.navigation.destinationName}`;
+      state.navigation.turnType = navData.turnType || 'DESTINATION';
+
+      // Update HUD elements
+      if (els.navDestName) els.navDestName.textContent = state.navigation.destinationName;
+      if (els.navDistRem) els.navDistRem.textContent = `${state.navigation.distanceRemainingKm.toFixed(1)} km`;
+      if (els.navEtaMin) els.navEtaMin.textContent = `${state.navigation.etaMinutes} mins`;
+      if (els.navInstructionText) els.navInstructionText.textContent = state.navigation.instruction;
+
+      // Update Turn Icon
+      if (els.navTurnIcon) {
+        if (state.navigation.turnType === 'TURN_LEFT') {
+          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrow-turn-up fa-rotate-270"></i>';
+        } else if (state.navigation.turnType === 'TURN_RIGHT') {
+          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrow-turn-up fa-rotate-90"></i>';
+        } else if (state.navigation.turnType === 'STRAIGHT') {
+          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+        } else {
+          els.navTurnIcon.innerHTML = '<i class="fa-solid fa-flag-checkered" style="color:#ef4444;"></i>';
+        }
+      }
+
+      // Update or create Destination Marker on Leaflet Map
+      if (map) {
+        if (destinationMarker) {
+          destinationMarker.setLatLng([state.navigation.destLat, state.navigation.destLng]);
+          destinationMarker.setPopupContent(`<b>Destination:</b> ${state.navigation.destinationName}`);
+        } else {
+          const destIcon = L.divIcon({
+            className: 'custom-dest-pin',
+            html: `<div class="dest-pin-body"><i class="fa-solid fa-flag-checkered"></i></div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 36]
+          });
+          destinationMarker = L.marker([state.navigation.destLat, state.navigation.destLng], { icon: destIcon }).addTo(map);
+          destinationMarker.bindPopup(`<b>Destination:</b> ${state.navigation.destinationName}`);
+        }
+
+        // Draw/Update road navigation polyline connecting rider to destination
+        const riderPos = [state.location.lat, state.location.lng];
+        const destPos = [state.navigation.destLat, state.navigation.destLng];
+        if (navRoutePolyline) {
+          navRoutePolyline.setLatLngs([riderPos, destPos]);
+        } else {
+          navRoutePolyline = L.polyline([riderPos, destPos], {
+            color: '#10b981',
+            weight: 5,
+            opacity: 0.85,
+            dashArray: '8, 8'
+          }).addTo(map);
+        }
+      }
+    } else if (navData.active === false && state.navigation.active) {
+      state.navigation.active = false;
+      if (els.navDestName) els.navDestName.textContent = 'Standby';
+      if (els.navDistRem) els.navDistRem.textContent = '0.0 km';
+      if (els.navEtaMin) els.navEtaMin.textContent = '-- mins';
+      if (els.navInstructionText) els.navInstructionText.textContent = 'Awaiting Navigation Target / Live GPS';
+      if (els.navTurnIcon) els.navTurnIcon.innerHTML = '<i class="fa-solid fa-location-dot"></i>';
+
+      if (navRoutePolyline && map) {
+        map.removeLayer(navRoutePolyline);
+        navRoutePolyline = null;
+      }
+    }
+  }
+
   // Battery Update (Required Li-Ion Sensing)
   function updateBattery(voltage, isCharging) {
     state.batteryVoltage = voltage;
@@ -638,39 +722,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const isOnline = data.online === true;
         updateConnectionStatus(isOnline, data.secondsSinceLastSeen);
 
-        if (isOnline) {
-          if (data.gps && data.gps.latitude && data.gps.longitude) {
-            updateLocation(data.gps.latitude, data.gps.longitude, data.gps.speedKmH, data.gps.heading);
-            updateSpeedometer(data.gps.speedKmH);
-            els.satellitesCount.textContent = data.gps.satellites || '0';
+        // Always sync GPS location if available
+        if (data.gps && data.gps.latitude && data.gps.longitude) {
+          updateLocation(data.gps.latitude, data.gps.longitude, data.gps.speedKmH, data.gps.heading);
+          updateSpeedometer(data.gps.speedKmH);
+          if (els.satellitesCount) {
+            els.satellitesCount.textContent = isOnline ? (data.gps.satellites || '0') : `${data.gps.satellites || 0} (Standby)`;
           }
+        }
+
+        // Always sync navigation state from mobile app / backend!
+        if (data.navigation) {
+          updateDashboardNavigation(data.navigation);
+        }
+
+        if (isOnline) {
           if (data.sensors) {
             if (data.sensors.helmetWorn !== undefined) updateWearStatus(data.sensors.helmetWorn);
             if (data.sensors.batteryVoltage !== undefined) updateBattery(data.sensors.batteryVoltage, data.sensors.isCharging);
             if (data.sensors.totalG !== undefined) updateIMU(data.sensors.totalG, data.sensors.tiltAngle, data.sensors.accelX, data.sensors.accelY, data.sensors.accelZ);
           }
         } else {
-          // If offline and simulator is not actively running, show strictly offline/standby state
+          // If offline and simulator is not actively running, show standby state for hardware sensors
           if (!state.simRunning) {
             updateWearStatus(false);
             updateBattery(0, false);
             updateIMU(0, 0, 0, 0, 0);
             updateSpeedometer(0);
-            els.satellitesCount.textContent = '0 (Offline)';
-            els.hudLat.textContent = '--';
-            els.hudLng.textContent = '--';
-            els.hudAlt.textContent = '--';
           }
         }
       })
       .catch(() => {
         updateConnectionStatus(false);
-        if (!state.simRunning) {
-          updateWearStatus(false);
-          updateBattery(0, false);
-          updateIMU(0, 0, 0, 0, 0);
-          updateSpeedometer(0);
-        }
       });
   }
 
