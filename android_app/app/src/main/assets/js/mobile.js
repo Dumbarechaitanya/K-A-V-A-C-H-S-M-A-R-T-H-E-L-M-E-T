@@ -347,12 +347,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (leafletMap.touchZoom) leafletMap.touchZoom.enable();
     if (leafletMap.doubleClickZoom) leafletMap.doubleClickZoom.enable();
 
-    // High-Resolution CartoDB Voyager & OpenStreetMap (Zero API Key, Zero Watermarks, Never Blocked, Never shows "Map data not yet available")
-    const baseTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
+    // Clean High-Resolution OpenStreetMap Tiles (Zero API Key, Zero Watermarks, 100% Free)
+    const baseTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      maxNativeZoom: 18,
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
 
     baseTileLayer.addTo(leafletMap);
@@ -625,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Fallback to Django backend proxy
     if (!routeData) {
       try {
-        const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
+        const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
         const proxyUrl = `${baseUrl}/api/navigation/route?from_lat=${curLat}&from_lng=${curLng}&to_lat=${destLat}&to_lng=${destLng}`;
         const res = await fetch(proxyUrl);
         if (res.ok) {
@@ -1015,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Sync Destination to Backend & Browser Dashboard in Real-Time
   async function syncDestinationToBackend(lat, lng, name, active = true, distKm = 0.0, etaMins = 0, instruction = '', turnType = 'STRAIGHT') {
-    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
     try {
       await fetch(`${baseUrl}/api/navigation/destination/`, {
         method: 'POST',
@@ -1099,7 +1097,7 @@ document.addEventListener('DOMContentLoaded', () => {
       leafletMap.panTo([lat, lng]);
     }
 
-    // Require real device GPS fix - NEVER route from hardcoded fake coordinates
+    // Require device GPS location - fallback to last known or campus anchor if acquiring
     let curLat = state.latitude;
     let curLng = state.longitude;
 
@@ -1113,17 +1111,20 @@ document.addEventListener('DOMContentLoaded', () => {
             curLng = pos.coords.longitude;
             await calculateAndDisplayRoadRoute(curLat, curLng, lat, lng, name);
           },
-          (err) => {
-            console.warn('GPS location unavailable:', err);
-            if (els.navSelectedDesc) els.navSelectedDesc.textContent = 'Real GPS location required. Please enable location permissions.';
-            alert('Cannot calculate road route: device GPS location is not available. Please allow location permissions.');
+          async (err) => {
+            console.warn('GPS location still acquiring, routing from anchor:', err);
+            curLat = state.latitude || 19.2047;
+            curLng = state.longitude || 73.1080;
+            state.latitude = curLat;
+            state.longitude = curLng;
+            await calculateAndDisplayRoadRoute(curLat, curLng, lat, lng, name);
           },
-          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
         return;
       } else {
-        alert('Geolocation is not supported by your browser or device.');
-        return;
+        curLat = state.latitude || 19.2047;
+        curLng = state.longitude || 73.1080;
       }
     }
 
@@ -1375,7 +1376,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Fallback: Query Django Backend Proxy
     if (onlineResults.length === 0 && localMatches.length === 0) {
       try {
-        const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
+        const curLat = state.latitude || 19.2047;
+        const curLng = state.longitude || 73.1080;
+        const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
         const proxyUrl = `${baseUrl}/api/navigation/search?q=${encodeURIComponent(query)}&lat=${curLat}&lon=${curLng}`;
         const res2 = await fetch(proxyUrl);
         if (res2.ok) {
@@ -1754,6 +1757,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Native Android GPS Bridge Hook (Called directly by MainActivity.java)
+  function handleNativeNeoM8nFix(lat, lng, speedKmh, bearing, alt, accuracy) {
+    handleNeoM8nLocationFix({
+      coords: {
+        latitude: Number(lat),
+        longitude: Number(lng),
+        speed: speedKmh ? (Number(speedKmh) / 3.6) : 0,
+        heading: bearing ? Number(bearing) : null,
+        altitude: alt ? Number(alt) : null,
+        accuracy: accuracy ? Number(accuracy) : 2.5
+      }
+    });
+  }
+  window.handleNativeNeoM8nFix = handleNativeNeoM8nFix;
+
   // ============================================================================
   // NMEA-0183 PROTOCOL STREAM (Live when Bluetooth helmet is connected)
   // ============================================================================
@@ -1840,7 +1858,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
 
     try {
       const statusRes = await fetch(`${baseUrl}/api/telemetry/latest/`, {

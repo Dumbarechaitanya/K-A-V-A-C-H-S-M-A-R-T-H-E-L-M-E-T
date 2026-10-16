@@ -196,12 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
         attributionControl: true
       }).setView([state.location.lat, state.location.lng], 13);
 
-      // High-Resolution CartoDB Voyager & OpenStreetMap (Zero API Key, Zero Watermarks, Never Blocked, Never shows "Map data not yet available")
-      baseTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd',
+      // Clean High-Resolution OpenStreetMap Tiles (Zero API Key, Zero Watermarks, 100% Free)
+      baseTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        maxNativeZoom: 18,
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       });
 
       baseTileLayer.addTo(map);
