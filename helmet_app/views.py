@@ -575,11 +575,113 @@ def api_navigation_destination(request):
     return JsonResponse({'error': 'POST or GET required'}, status=405)
 
 
+LOCAL_LANDMARKS_DB = [
+    {
+        "name": "Shivajirao S. Jondhale College of Engineering (SSJCOE)",
+        "display_name": "Shivajirao S. Jondhale College of Engineering, Sonarpada, Kalyan-Shil Road, Dombivli (East) 421204",
+        "keywords": ["shivajirao", "jondhale", "ssjcoe", "jondhale college", "engineering", "sonarpada", "manpada"],
+        "lat": 19.20474,
+        "lon": 73.10800
+    },
+    {
+        "name": "S.H. Jondhale Polytechnic (Dombivli West)",
+        "display_name": "S.H. Jondhale Polytechnic, Old Dombivli Road, Dombivli (West) 421202",
+        "keywords": ["jondhale polytechnic", "jondhale west", "sh jondhale", "polytechnic west"],
+        "lat": 19.21816,
+        "lon": 73.08380
+    },
+    {
+        "name": "Shivajirao S. Jondhale Knowledge City (Asangaon)",
+        "display_name": "Shivajirao S. Jondhale Knowledge City, Asangaon, Shahapur 421601",
+        "keywords": ["jondhale asangaon", "asangaon"],
+        "lat": 19.43980,
+        "lon": 73.30820
+    },
+    {
+        "name": "Dombivli Railway Station",
+        "display_name": "Dombivli Railway Station, Central Railway, Dombivli",
+        "keywords": ["dombivli station", "dombivli"],
+        "lat": 19.2184,
+        "lon": 73.0867
+    },
+    {
+        "name": "Kalyan Junction Railway Station",
+        "display_name": "Kalyan Junction Railway Station, Kalyan",
+        "keywords": ["kalyan junction", "kalyan station", "kalyan"],
+        "lat": 19.2361,
+        "lon": 73.1307
+    },
+    {
+        "name": "Thakurli Railway Station",
+        "display_name": "Thakurli Railway Station, Thakurli East",
+        "keywords": ["thakurli", "thakurli station"],
+        "lat": 19.2246,
+        "lon": 73.0978
+    },
+    {
+        "name": "Pendharkar College Dombivli",
+        "display_name": "K.V. Pendharkar College of Arts, Science and Commerce, MIDC, Dombivli East",
+        "keywords": ["pendharkar"],
+        "lat": 19.2175,
+        "lon": 73.0965
+    },
+    {
+        "name": "B.K. Birla College Kalyan",
+        "display_name": "B.K. Birla College of Arts, Science and Commerce, Kalyan West",
+        "keywords": ["birla", "birla college"],
+        "lat": 19.2455,
+        "lon": 73.1465
+    },
+    {
+        "name": "AIMS Hospital Dombivli",
+        "display_name": "AIMS Hospital, MIDC Phase 2, Dombivli East",
+        "keywords": ["aims hospital", "aims"],
+        "lat": 19.2190,
+        "lon": 73.0940
+    },
+    {
+        "name": "Mamata Hospital Dombivli",
+        "display_name": "Mamata Hospital, Appa Datar Chowk, Dombivli East",
+        "keywords": ["mamata hospital", "mamata"],
+        "lat": 19.2165,
+        "lon": 73.0895
+    },
+    {
+        "name": "Fortis Hospital Kalyan",
+        "display_name": "Fortis Hospital, Sahyadri Ground, Khadakpada, Kalyan West",
+        "keywords": ["fortis hospital", "fortis"],
+        "lat": 19.2520,
+        "lon": 73.1390
+    },
+    {
+        "name": "Lodha Palava City",
+        "display_name": "Lodha Palava City, Kalyan-Shilphata Road",
+        "keywords": ["palava", "lodha palava", "shilphata"],
+        "lat": 19.1825,
+        "lon": 73.0780
+    },
+    {
+        "name": "Gharda Circle MIDC",
+        "display_name": "Gharda Circle, MIDC Phase 1, Dombivli East",
+        "keywords": ["gharda circle", "gharda"],
+        "lat": 19.2140,
+        "lon": 73.0990
+    },
+    {
+        "name": "Manpada Chowk Dombivli",
+        "display_name": "Manpada Chowk / Kalyan-Shil Road Junction, Dombivli East",
+        "keywords": ["manpada", "manpada chowk"],
+        "lat": 19.2162,
+        "lon": 73.1045
+    }
+]
+
+
 def api_navigation_search(request):
     """
     Proxy geocoding search to avoid client-side CORS/User-Agent issues.
-    Enhanced with locality, proximity viewbox, and Indian subcontinent prioritization
-    so searches for places like 'hospital', 'college', 'station' return accurate nearby locations.
+    Enhanced with verified local landmark database, proximity viewbox, and Indian subcontinent prioritization
+    so searches for places like colleges, hospitals, and stations accurately pinpoint the right campus.
     """
     query = request.GET.get('q', '').strip()
     if not query:
@@ -603,7 +705,39 @@ def api_navigation_search(request):
              math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * (math.sin(d_lon / 2) ** 2))
         return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-    # 1. First attempt: Nominatim biased to India and nearby viewbox
+    q_lower = query.lower().strip()
+
+    # 1. Check Verified Local Landmark Directory first
+    local_matched = []
+    for lm in LOCAL_LANDMARKS_DB:
+        name_lower = lm['name'].lower()
+        matched = False
+        if q_lower in name_lower or name_lower in q_lower:
+            matched = True
+        elif any(k in q_lower for k in lm['keywords']):
+            matched = True
+
+        if matched:
+            # Special case disambiguation for Jondhale campuses:
+            # If user asks for polytechnic or west, match polytechnic. Otherwise match engineering degree college.
+            if 'jondhale' in q_lower or 'shivajirao' in q_lower:
+                wants_poly = 'polytechnic' in q_lower or 'west' in q_lower
+                is_poly = 'polytechnic' in name_lower or 'west' in name_lower
+                if wants_poly != is_poly:
+                    continue
+            dist = round(calc_dist(user_lat, user_lon, lm['lat'], lm['lon']), 1)
+            local_matched.append({
+                'name': lm['name'],
+                'display_name': lm['display_name'],
+                'lat': lm['lat'],
+                'lon': lm['lon'],
+                'dist_km': dist,
+                'verified': True
+            })
+
+    results.extend(local_matched)
+
+    # 2. Query Nominatim biased to local viewbox and India
     try:
         min_lon = user_lon - 0.8
         max_lat = user_lat + 0.8
@@ -621,18 +755,20 @@ def api_navigation_search(request):
                 name = item.get('display_name', '').split(',')[0].strip()
                 lat_val = float(item.get('lat'))
                 lon_val = float(item.get('lon'))
-                results.append({
-                    'name': name,
-                    'display_name': item.get('display_name', ''),
-                    'lat': lat_val,
-                    'lon': lon_val,
-                    'dist_km': round(calc_dist(user_lat, user_lon, lat_val, lon_val), 1)
-                })
+                # Prevent duplicates within 250m
+                if not any(abs(lat_val - r['lat']) < 0.0025 and abs(lon_val - r['lon']) < 0.0025 for r in results):
+                    results.append({
+                        'name': name,
+                        'display_name': item.get('display_name', ''),
+                        'lat': lat_val,
+                        'lon': lon_val,
+                        'dist_km': round(calc_dist(user_lat, user_lon, lat_val, lon_val), 1)
+                    })
     except Exception:
         pass
 
-    # 2. If no results, try Photon API with coordinate proximity bias
-    if not results:
+    # 3. If needed, query Photon API with coordinate proximity bias
+    if len(results) < 3:
         try:
             encoded_q = urllib.parse.quote(query)
             p_url = f"https://photon.komoot.io/api/?q={encoded_q}&lat={user_lat}&lon={user_lon}&limit=8"
@@ -647,40 +783,19 @@ def api_navigation_search(request):
                     display = f"{name}, {city}".strip(', ')
                     lat_val = float(c[1])
                     lon_val = float(c[0])
-                    results.append({
-                        'name': name,
-                        'display_name': display,
-                        'lat': lat_val,
-                        'lon': lon_val,
-                        'dist_km': round(calc_dist(user_lat, user_lon, lat_val, lon_val), 1)
-                    })
+                    if not any(abs(lat_val - r['lat']) < 0.0025 and abs(lon_val - r['lon']) < 0.0025 for r in results):
+                        results.append({
+                            'name': name,
+                            'display_name': display,
+                            'lat': lat_val,
+                            'lon': lon_val,
+                            'dist_km': round(calc_dist(user_lat, user_lon, lat_val, lon_val), 1)
+                        })
         except Exception:
             pass
 
-    # 3. If still empty, try global Nominatim
-    if not results:
-        try:
-            encoded_q = urllib.parse.quote(query)
-            url = f"https://nominatim.openstreetmap.org/search?format=json&q={encoded_q}&limit=5"
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=4) as resp:
-                data = json.loads(resp.read().decode())
-                for item in data:
-                    name = item.get('display_name', '').split(',')[0].strip()
-                    lat_val = float(item.get('lat'))
-                    lon_val = float(item.get('lon'))
-                    results.append({
-                        'name': name,
-                        'display_name': item.get('display_name', ''),
-                        'lat': lat_val,
-                        'lon': lon_val,
-                        'dist_km': round(calc_dist(user_lat, user_lon, lat_val, lon_val), 1)
-                    })
-        except Exception:
-            pass
-
-    # Sort results by proximity so closest places are at the top
-    results.sort(key=lambda x: x.get('dist_km', 99999))
+    # Sort results: Verified landmarks always first, then by closest distance
+    results.sort(key=lambda x: (0 if x.get('verified') else 1, x.get('dist_km', 99999)))
 
     return JsonResponse({'results': results})
 

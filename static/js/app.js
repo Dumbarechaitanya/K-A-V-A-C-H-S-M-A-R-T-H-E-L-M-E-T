@@ -714,48 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Django REST Polling for Live Telemetry Updates
-  function pollDjangoTelemetry() {
-    fetch('/api/telemetry/latest/')
-      .then(res => res.json())
-      .then(data => {
-        const isOnline = data.online === true;
-        updateConnectionStatus(isOnline, data.secondsSinceLastSeen);
 
-        // Always sync GPS location if available
-        if (data.gps && data.gps.latitude && data.gps.longitude) {
-          updateLocation(data.gps.latitude, data.gps.longitude, data.gps.speedKmH, data.gps.heading);
-          updateSpeedometer(data.gps.speedKmH);
-          if (els.satellitesCount) {
-            els.satellitesCount.textContent = isOnline ? (data.gps.satellites || '0') : `${data.gps.satellites || 0} (Standby)`;
-          }
-        }
-
-        // Always sync navigation state from mobile app / backend!
-        if (data.navigation) {
-          updateDashboardNavigation(data.navigation);
-        }
-
-        if (isOnline) {
-          if (data.sensors) {
-            if (data.sensors.helmetWorn !== undefined) updateWearStatus(data.sensors.helmetWorn);
-            if (data.sensors.batteryVoltage !== undefined) updateBattery(data.sensors.batteryVoltage, data.sensors.isCharging);
-            if (data.sensors.totalG !== undefined) updateIMU(data.sensors.totalG, data.sensors.tiltAngle, data.sensors.accelX, data.sensors.accelY, data.sensors.accelZ);
-          }
-        } else {
-          // If offline and simulator is not actively running, show standby state for hardware sensors
-          if (!state.simRunning) {
-            updateWearStatus(false);
-            updateBattery(0, false);
-            updateIMU(0, 0, 0, 0, 0);
-            updateSpeedometer(0);
-          }
-        }
-      })
-      .catch(() => {
-        updateConnectionStatus(false);
-      });
-  }
 
   // Setup Event Listeners
   function setupEventListeners() {
@@ -928,7 +887,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       const isOnline = Boolean(data.online);
-      updateConnectionStatus(isOnline);
+      updateConnectionStatus(isOnline, data.secondsSinceLastSeen);
 
       // GPS Position & Speed
       if (data.gps && data.gps.latitude !== null && data.gps.longitude !== null) {
@@ -940,6 +899,14 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSpeedometer(speed);
 
         if (els.hudAlt) els.hudAlt.textContent = `${Math.round(data.gps.altitudeMeters || 15)} m`;
+        if (els.satellitesCount) {
+          els.satellitesCount.textContent = isOnline ? (data.gps.satellites || '0') : `${data.gps.satellites || 0} (Standby)`;
+        }
+      }
+
+      // Always sync live road route & destination selected in Mobile App to Browser Dashboard!
+      if (data.navigation) {
+        updateDashboardNavigation(data.navigation);
       }
 
       // Helmet Wear Detection
@@ -961,7 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.sensors && data.sensors.totalG !== undefined) {
         const totalG = parseFloat(data.sensors.totalG || 1.0);
         const tilt = parseFloat(data.sensors.tiltAngle || 0.0);
-        updateIMU(totalG, tilt);
+        updateIMU(totalG, tilt, data.sensors.accelX, data.sensors.accelY, data.sensors.accelZ);
       }
 
       // Emergency Alerts
@@ -970,6 +937,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (data.emergency && data.emergency.accidentTriggered && !state.accidentActive) {
         triggerAccidentAlert(state.totalG || 4.2, state.tiltAngle || 70);
+      }
+
+      if (!isOnline && !state.simRunning) {
+        if (!state.helmetWorn) updateWearStatus(false);
       }
     } catch (e) {
       console.warn('Django telemetry poll error:', e);

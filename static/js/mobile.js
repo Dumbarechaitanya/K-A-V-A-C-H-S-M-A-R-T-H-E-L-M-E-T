@@ -357,10 +357,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnCenterMap) {
       els.btnCenterMap.onclick = (e) => {
         if (e) { e.preventDefault(); e.stopPropagation(); }
-        const curLat = state.latitude || defaultLat;
-        const curLng = state.longitude || defaultLng;
-        leafletMap.setView([curLat, curLng], 16, { animate: true });
         triggerHapticFeedback([40]);
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              handleNeoM8nLocationFix(pos);
+              if (leafletMap && state.latitude && state.longitude) {
+                leafletMap.setView([state.latitude, state.longitude], 17, { animate: true });
+              }
+            },
+            () => {
+              const curLat = state.latitude || defaultLat;
+              const curLng = state.longitude || defaultLng;
+              if (leafletMap) leafletMap.setView([curLat, curLng], 16, { animate: true });
+            },
+            { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+          );
+        } else if (leafletMap) {
+          const curLat = state.latitude || defaultLat;
+          const curLng = state.longitude || defaultLng;
+          leafletMap.setView([curLat, curLng], 16, { animate: true });
+        }
       };
     }
 
@@ -539,9 +556,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update or create destination marker
     if (destMarker && leafletMap) {
       destMarker.setLatLng([lat, lng]);
+      destMarker.setPopupContent(`<b>${name}</b><br><small style="color:#64748b;">Drag pin to pinpoint exact gate/entrance</small>`);
     } else if (leafletMap) {
       const destPinHtml = `
-        <div style="position:relative; width:34px; height:34px; display:flex; align-items:center; justify-content:center;">
+        <div style="position:relative; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:grab;">
           <div style="position:absolute; width:14px; height:14px; border-radius:50%; background:rgba(239,68,68,0.4); animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></div>
           <div style="width:30px; height:30px; border-radius:50%; background:#ef4444; border:3px solid #ffffff; box-shadow:0 3px 10px rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px;">
             <i class="fa-solid fa-flag"></i>
@@ -554,7 +572,18 @@ document.addEventListener('DOMContentLoaded', () => {
         iconSize: [34, 34],
         iconAnchor: [17, 30]
       });
-      destMarker = L.marker([lat, lng], { icon: destIcon }).addTo(leafletMap);
+      destMarker = L.marker([lat, lng], {
+        icon: destIcon,
+        draggable: true,
+        autoPan: true
+      }).addTo(leafletMap);
+
+      destMarker.bindPopup(`<b>${name}</b><br><small style="color:#64748b;">Drag pin to pinpoint exact gate/entrance</small>`);
+
+      destMarker.on('dragend', (e) => {
+        const newPos = e.target.getLatLng();
+        setDestination(newPos.lat, newPos.lng, state.destination ? state.destination.name : 'Custom Pinpoint');
+      });
     }
 
     // Show Active Destination Card
@@ -821,10 +850,10 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSearchResults(combined);
       // If user typed a specific college/landmark name and the first result is a strong match
       const first = combined[0];
-      if (qLower.includes('jondhale')) {
+      if (qLower.includes('jondhale') || qLower.includes('shivajirao') || qLower.includes('ssjcoe')) {
         const target = (qLower.includes('polytechnic') || qLower.includes('west'))
           ? (combined.find(c => c.name.toLowerCase().includes('polytechnic')) || first)
-          : first;
+          : (combined.find(c => c.name.toLowerCase().includes('engineering') || c.name.includes('SSJCOE')) || first);
         setDestination(target.lat, target.lng, target.name);
       }
     }
@@ -911,77 +940,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const accuracy = coords.accuracy || 999.0;
     state.accuracyMeters = accuracy;
 
-    // Check if GPS actually has a reliable satellite fix (Accuracy must be <= 30 meters)
-    if (accuracy > 30.0) {
-      state.hasGpsFix = false;
-      state.hdop = +(accuracy / 5.0).toFixed(1);
+    // Evaluate GPS satellite / terrestrial fix quality
+    const isHighPrecision = accuracy <= 35.0;
+    const isAcceptableFix = accuracy <= 300.0;
 
-      if (els.gpsFixStatus) {
-        els.gpsFixStatus.textContent = 'Acquiring Fix...';
-        els.gpsFixStatus.className = 'value badge-warning';
-      }
-      if (els.gpsSatellitesVal) {
-        els.gpsSatellitesVal.textContent = '0 Locked';
-      }
-      if (els.gpsAccuracyVal) {
-        els.gpsAccuracyVal.textContent = `± ${Math.round(accuracy)} m (Acquiring)`;
-      }
-      if (els.neoHardwareBadge) {
-        els.neoHardwareBadge.textContent = (state.isBluetoothConnected || state.isHelmetOnline)
-          ? 'Searching Fix...'
-          : 'Offline (Connect Bluetooth)';
-        els.neoHardwareBadge.className = 'status-pill status-pill-offline';
-      }
-
-      updateSpeedDisplay(0.0);
-      return;
-    }
-
-    // ACCURATE FIX ACQUIRED (Accuracy <= 30m)
-    state.hasGpsFix = true;
+    state.hasGpsFix = isAcceptableFix;
     state.hdop = +(Math.max(0.7, accuracy / 4.0)).toFixed(2);
 
     if (state.isBluetoothConnected || state.isHelmetOnline) {
       // HELMET CONNECTED VIA BLUETOOTH -> Mobile Phone GPS acts as NEO-M8N GNSS Engine!
-      state.satellitesCount = Math.min(18, Math.max(7, Math.round(20 - state.hdop * 3)));
+      state.satellitesCount = isHighPrecision
+        ? Math.min(18, Math.max(7, Math.round(20 - state.hdop * 3)))
+        : (isAcceptableFix ? 8 : 0);
 
       if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'NEO-M8N GNSS';
       if (els.gpsFixStatus) {
-        els.gpsFixStatus.textContent = '3D Fix';
-        els.gpsFixStatus.className = 'value badge-success';
+        els.gpsFixStatus.textContent = isHighPrecision ? '3D Fix' : (isAcceptableFix ? 'GPS Active' : 'Acquiring Fix...');
+        els.gpsFixStatus.className = isAcceptableFix ? 'value badge-success' : 'value badge-warning';
       }
       if (els.gpsSatellitesVal) {
-        els.gpsSatellitesVal.textContent = `${state.satellitesCount} Locked`;
+        els.gpsSatellitesVal.textContent = isAcceptableFix ? `${state.satellitesCount} Locked` : '0 Locked';
       }
       if (els.gpsAccuracyVal) {
         els.gpsAccuracyVal.textContent = `± ${accuracy.toFixed(1)} m`;
       }
       if (els.neoHardwareBadge) {
-        els.neoHardwareBadge.textContent = 'Hardware Active (3D Fix)';
-        els.neoHardwareBadge.className = 'status-pill status-pill-success';
+        els.neoHardwareBadge.textContent = isAcceptableFix ? 'Hardware Active (3D Fix)' : 'Searching Fix...';
+        els.neoHardwareBadge.className = isAcceptableFix ? 'status-pill status-pill-success' : 'status-pill status-pill-warning';
       }
       if (els.gpsLatVal) els.gpsLatVal.textContent = `${coords.latitude.toFixed(5)}° N`;
       if (els.gpsLngVal) els.gpsLngVal.textContent = `${coords.longitude.toFixed(5)}° E`;
     } else {
       // HELMET DISCONNECTED -> Phone GPS active for navigation only, NEO-M8N on standby
       state.satellitesCount = 0;
-      if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'Phone GPS (Standby)';
+      if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'Phone GPS (Nav)';
       if (els.gpsFixStatus) {
-        els.gpsFixStatus.textContent = 'Phone: 3D Fix';
-        els.gpsFixStatus.className = 'value badge-success';
+        els.gpsFixStatus.textContent = isHighPrecision ? 'Phone: 3D Fix' : (isAcceptableFix ? 'Phone: GPS Fix' : 'Acquiring...');
+        els.gpsFixStatus.className = isAcceptableFix ? 'value badge-success' : 'value badge-warning';
       }
       if (els.gpsSatellitesVal) {
-        els.gpsSatellitesVal.textContent = '-- (BT Disconnected)';
+        els.gpsSatellitesVal.textContent = '-- (BT Standby)';
       }
       if (els.gpsAccuracyVal) {
         els.gpsAccuracyVal.textContent = `± ${accuracy.toFixed(1)} m`;
       }
       if (els.neoHardwareBadge) {
-        els.neoHardwareBadge.textContent = 'Offline (Connect Bluetooth)';
+        els.neoHardwareBadge.textContent = 'Standby (Connect Bluetooth)';
         els.neoHardwareBadge.className = 'status-pill status-pill-offline';
       }
-      if (els.gpsLatVal) els.gpsLatVal.textContent = `${coords.latitude.toFixed(5)}° N (Standby)`;
-      if (els.gpsLngVal) els.gpsLngVal.textContent = `${coords.longitude.toFixed(5)}° E (Standby)`;
+      if (els.gpsLatVal) els.gpsLatVal.textContent = `${coords.latitude.toFixed(5)}° N`;
+      if (els.gpsLngVal) els.gpsLngVal.textContent = `${coords.longitude.toFixed(5)}° E`;
+    }
+
+    if (!isAcceptableFix && accuracy > 600.0) {
+      updateSpeedDisplay(0.0);
+      return;
     }
 
     const lat2 = coords.latitude;
@@ -1110,6 +1123,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start Location Listener
   function startNeoM8nGpsEngine() {
     if ('geolocation' in navigator) {
+      // 1. Immediately request location to eliminate initial GPS lock delay
+      navigator.geolocation.getCurrentPosition(
+        handleNeoM8nLocationFix,
+        handleNeoM8nLocationError,
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+      // 2. Continuously watch for movement and heading changes
       if (state.gpsWatchId) navigator.geolocation.clearWatch(state.gpsWatchId);
       state.gpsWatchId = navigator.geolocation.watchPosition(
         handleNeoM8nLocationFix,

@@ -585,7 +585,7 @@
   <!-- Sound & Voice Synthesizer (Web Audio + SpeechSynthesis API) -->
   <script src="{% static 'js/sound-effects.js' %}"></script>
   
-  <!-- Main Application Logic -->
-  <script src="{% static 'js/app.js' %}"></script>
+  <!-- Main Application Logic (Cache-busted for instant live deployment updates) -->
+  <script src="{% static 'js/app.js' %}?v=20261016_2245"></script>
 </body>
 </html>
