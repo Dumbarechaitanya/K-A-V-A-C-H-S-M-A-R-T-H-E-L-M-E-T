@@ -662,7 +662,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Known Maharashtra / Dombivli / Kalyan / Mumbai landmarks database for instant zero-latency offline resolution
   const LOCAL_LANDMARKS = [
-    { name: "Shivajirao S. Jondhale College of Engineering", keywords: ["shivajirao", "jondhale", "ssjcoe", "jondhale college"], lat: 19.21816, lng: 73.08380, desc: "Engineering College, Dombivli West" },
+    { name: "Shivajirao S. Jondhale College of Engineering (SSJCOE)", keywords: ["shivajirao", "jondhale", "ssjcoe", "jondhale college", "engineering", "sonarpada", "manpada"], lat: 19.20474, lng: 73.10800, desc: "Degree Engineering Campus, Kalyan-Shil Road, Sonarpada, Dombivli East" },
+    { name: "S.H. Jondhale Polytechnic (Dombivli West)", keywords: ["jondhale polytechnic", "jondhale west", "sh jondhale"], lat: 19.21816, lng: 73.08380, desc: "Polytechnic Campus, Old Dombivli Road, Dombivli West" },
+    { name: "Shivajirao S. Jondhale Polytechnic (Asangaon)", keywords: ["jondhale asangaon", "asangaon"], lat: 19.43980, lng: 73.30820, desc: "Knowledge City Campus, Asangaon, Shahapur" },
     { name: "Dombivli Railway Station", keywords: ["dombivli station"], lat: 19.2184, lng: 73.0867, desc: "Central Railway Suburban Hub" },
     { name: "Dombivli East (Phadke Road)", keywords: ["phadke road", "baji prabhu"], lat: 19.2195, lng: 73.0892, desc: "Commercial & Shopping Zone" },
     { name: "Dombivli West", keywords: ["subhash road"], lat: 19.2170, lng: 73.0835, desc: "West Market & Residential" },
@@ -819,8 +821,11 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSearchResults(combined);
       // If user typed a specific college/landmark name and the first result is a strong match
       const first = combined[0];
-      if (qLower.includes('jondhale') && first.name.toLowerCase().includes('jondhale')) {
-        setDestination(first.lat, first.lng, first.name);
+      if (qLower.includes('jondhale')) {
+        const target = (qLower.includes('polytechnic') || qLower.includes('west'))
+          ? (combined.find(c => c.name.toLowerCase().includes('polytechnic')) || first)
+          : first;
+        setDestination(target.lat, target.lng, target.name);
       }
     }
   }
