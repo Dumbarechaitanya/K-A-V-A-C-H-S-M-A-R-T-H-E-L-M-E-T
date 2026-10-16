@@ -633,9 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
               if (data.sensors.batteryVoltage !== undefined && data.sensors.batteryVoltage > 0) {
                 updateBattery(data.sensors.batteryVoltage, data.sensors.isCharging);
               }
-              if (data.sensors.helmetWorn !== undefined) {
-                updateWearStatus(data.sensors.helmetWorn);
-              }
+              updateWearStatus(false);
             }
             els.satellitesCount.textContent = '0 (Offline)';
           }

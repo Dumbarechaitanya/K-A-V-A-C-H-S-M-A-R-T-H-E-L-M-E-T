@@ -945,8 +945,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isOnline && data.sensors && data.sensors.sosActive && !state.sosActive) {
         triggerSos('Helmet SOS Button / Mobile App');
       }
-      if (isOnline && data.emergency && data.emergency.accidentTriggered && !state.accidentActive) {
-        triggerAccidentAlert(state.totalG || 4.2, state.tiltAngle || 70);
+      if (isOnline && data.emergency) {
+        if (data.emergency.inAccidentCountdown && !state.inCountdown && !state.accidentActive) {
+          triggerAccidentCountdown(state.totalG || 3.8, state.tiltAngle || 65);
+        } else if (!data.emergency.inAccidentCountdown && state.inCountdown) {
+          if (state.countdownTimer) clearInterval(state.countdownTimer);
+          state.inCountdown = false;
+          els.accidentModal.classList.add('hidden');
+        }
+        if (data.emergency.accidentTriggered && !state.accidentActive) {
+          confirmAccidentImpact(state.totalG || 4.2, state.tiltAngle || 70);
+        }
       }
     } catch (e) {
       console.warn('Django telemetry poll error:', e);

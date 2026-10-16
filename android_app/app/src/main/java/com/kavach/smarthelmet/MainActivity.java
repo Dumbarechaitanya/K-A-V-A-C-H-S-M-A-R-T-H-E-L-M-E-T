@@ -313,6 +313,36 @@ public class MainActivity extends AppCompatActivity {
         public void sendCommandToHelmet(String commandJson) {
             sendBluetoothCommand(commandJson);
         }
+
+        @JavascriptInterface
+        public void sendEmergencySms(String phone, String mapsUrl, double lat, double lng, float gForce, float tilt) {
+            runOnUiThread(() -> {
+                String targetPhone = (phone != null && !phone.trim().isEmpty()) ? phone.trim() : "112";
+                String msg = String.format(java.util.Locale.US,
+                        "EMERGENCY CRASH ALERT: Kavach Smart Helmet impact detected (%.1fg, %.0f° tilt). Location: %s",
+                        gForce, tilt, mapsUrl);
+                try {
+                    android.telephony.SmsManager smsManager;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                        smsManager = getSystemService(android.telephony.SmsManager.class);
+                    } else {
+                        smsManager = android.telephony.SmsManager.getDefault();
+                    }
+                    if (smsManager != null) {
+                        smsManager.sendTextMessage(targetPhone, null, msg, null, null);
+                        Toast.makeText(MainActivity.this, "Crash SOS SMS sent to emergency contact!", Toast.LENGTH_LONG).show();
+                    }
+                } catch (Exception e) {
+                    try {
+                        android.content.Intent smsIntent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                        smsIntent.setData(android.net.Uri.parse("sms:" + targetPhone));
+                        smsIntent.putExtra("sms_body", msg);
+                        smsIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(smsIntent);
+                    } catch (Exception ignored) {}
+                }
+            });
+        }
     }
 
     @Override

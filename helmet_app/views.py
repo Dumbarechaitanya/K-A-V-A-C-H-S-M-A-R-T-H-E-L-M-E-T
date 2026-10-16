@@ -10,8 +10,8 @@ def get_or_create_device_state(device_id='KAVACH-ESP32-01'):
     return state
 
 latest_hardware_diagnostics = {
-    'espOk': 1,
-    'ampOk': 1,
+    'espOk': 0,
+    'ampOk': 0,
     'mpuOk': 0,
     'gpsOk': 0,
     'irRaw': 0,
@@ -62,10 +62,15 @@ def api_telemetry(request):
         now = timezone.now()
 
         source = data.get('source', '')
-        is_companion_gps = source in ('mobile_app_gps', 'mobile_app', 'web_companion')
+        is_companion_sync = source in ('mobile_app_gps', 'mobile_app', 'web_companion', 'helmet_companion')
         # Physical hardware telemetry originates from the ESP32 directly or native Bluetooth link
-        is_hardware = (source in ('esp32', 'bluetooth_serial', 'mobile_app_bluetooth') or
-                       ('espOk' in data and not is_companion_gps))
+        is_hardware = (
+            source in ('esp32', 'bluetooth_serial', 'mobile_app_bluetooth') or
+            ('espOk' in data and not is_companion_sync) or
+            ('totalG' in data and not is_companion_sync) or
+            ('batteryVoltage' in data and not is_companion_sync) or
+            ('helmetWorn' in data and not is_companion_sync)
+        )
 
         if is_hardware:
             state.online = True
@@ -77,7 +82,7 @@ def api_telemetry(request):
                 if key in data:
                     latest_hardware_diagnostics[key] = int(data[key])
 
-        # GPS Data (Updated by either physical NEO-M8N hardware or companion phone GPS)
+        # GPS Data (Updated by NEO-M8N GNSS Engine)
         if 'latitude' in data and 'longitude' in data:
             state.latitude = float(data.get('latitude', state.latitude))
             state.longitude = float(data.get('longitude', state.longitude))
@@ -88,10 +93,18 @@ def api_telemetry(request):
                 state.gps_fix = bool(data.get('fix', True))
             if 'heading' in data:
                 state.heading = float(data.get('heading', state.heading))
-            if 'totalDistanceKm' in data:
+            if 'totalDistance' in data:
+                state.total_distance_km = float(data.get('totalDistance', state.total_distance_km))
+            elif 'totalDistanceKm' in data:
                 state.total_distance_km = float(data.get('totalDistanceKm', state.total_distance_km))
-            if 'avgSpeedKmH' in data:
+            if 'avgSpeed' in data:
+                state.avg_speed_kmh = float(data.get('avgSpeed', state.avg_speed_kmh))
+            elif 'avgSpeedKmH' in data:
                 state.avg_speed_kmh = float(data.get('avgSpeedKmH', state.avg_speed_kmh))
+            if 'maxSpeed' in data:
+                state.max_speed_kmh = max(state.max_speed_kmh, float(data.get('maxSpeed', state.max_speed_kmh)))
+            elif 'maxSpeedKmH' in data:
+                state.max_speed_kmh = max(state.max_speed_kmh, float(data.get('maxSpeedKmH', state.max_speed_kmh)))
 
             if state.speed_kmh > state.max_speed_kmh:
                 state.max_speed_kmh = round(state.speed_kmh, 1)
@@ -155,6 +168,13 @@ def api_telemetry(request):
 
             if 'isCharging' in data:
                 state.is_charging = bool(data['isCharging'])
+
+            if 'inAccidentCountdown' in data:
+                state.in_accident_countdown = bool(data['inAccidentCountdown'])
+
+            if data.get('cancelled') or data.get('countdown') is False:
+                state.in_accident_countdown = False
+                state.accident_confirmed = False
 
         # SOS Push Button Trigger
         if data.get('sosActive') and not state.sos_active:
@@ -241,14 +261,18 @@ def api_telemetry_latest(request):
     # Device is considered truly online only if telemetry was received in the last 15 seconds
     is_online = seconds_since_last_seen < 15
 
-    if state.online != is_online:
-        state.online = is_online
-        if not is_online:
+    if not is_online:
+        for k in latest_hardware_diagnostics:
+            latest_hardware_diagnostics[k] = 0
+        if state.online or state.helmet_worn or state.in_accident_countdown or state.sos_active:
+            state.online = False
             state.helmet_worn = False
-        state.save(update_fields=['online', 'helmet_worn'] if not is_online else ['online'])
-    elif not is_online and state.helmet_worn:
-        state.helmet_worn = False
-        state.save(update_fields=['helmet_worn'])
+            state.in_accident_countdown = False
+            state.sos_active = False
+            state.save(update_fields=['online', 'helmet_worn', 'in_accident_countdown', 'sos_active'])
+    elif not state.online:
+        state.online = True
+        state.save(update_fields=['online'])
 
     return JsonResponse({
         'deviceId': state.device_id,

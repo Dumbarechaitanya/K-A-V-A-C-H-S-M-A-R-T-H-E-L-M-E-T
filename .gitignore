@@ -30,6 +30,7 @@ build/
 local.properties
 **/local.properties
 *.apk
+!android_app/KAVACH-Smart-Helmet.apk
 *.aab
 .idea/
 **/.idea/

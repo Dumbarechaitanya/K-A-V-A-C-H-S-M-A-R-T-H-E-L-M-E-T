@@ -30,8 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
     serverUrl: initialServerUrl,
     isHelmetOnline: false,
     lastHwDiag: {
-      espOk: 1,
-      ampOk: 1,
+      espOk: 0,
+      ampOk: 0,
       mpuOk: 0,
       gpsOk: 0,
       irRaw: 0,
@@ -1462,10 +1462,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================================================================
   // SPEEDOMETER & TELEMETRY DISPLAY
   // ============================================================================
+  let speedSamplesSum = 0;
+  let speedSamplesCount = 0;
+
   function updateSpeedDisplay(speedVal) {
     state.speedKmH = Math.max(0, parseFloat(speedVal.toFixed(1)));
     if (state.speedKmH > state.maxSpeedKmH) {
       state.maxSpeedKmH = state.speedKmH;
+    }
+    if (state.speedKmH > 1.0) {
+      speedSamplesSum += state.speedKmH;
+      speedSamplesCount++;
+      state.avgSpeedKmH = +(speedSamplesSum / speedSamplesCount).toFixed(1);
     }
 
     if (els.speedDisplay) {
@@ -1473,6 +1481,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (els.tripMaxSpeedVal) {
       els.tripMaxSpeedVal.textContent = `${state.maxSpeedKmH.toFixed(1)} km/h`;
+    }
+    if (els.tripAvgSpeedVal) {
+      els.tripAvgSpeedVal.textContent = `${state.avgSpeedKmH.toFixed(1)} km/h`;
     }
     if (els.tripDistanceVal) {
       els.tripDistanceVal.textContent = `${state.totalDistanceKm.toFixed(2)} km`;
@@ -1515,9 +1526,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ============================================================================
-  // ============================================================================
-  // NEO-M8N GNSS BRIDGE & RIDER NAVIGATION ENGINE
-  // (Phone GPS acts as NEO-M8N GNSS when helmet is connected via Bluetooth)
+  // NEO-M8N GNSS NAVIGATION ENGINE
   // ============================================================================
   function handleNeoM8nLocationFix(position) {
     const coords = position.coords;
@@ -1525,53 +1534,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const accuracy = coords.accuracy || 999.0;
     state.accuracyMeters = accuracy;
 
-    // Evaluate GPS satellite / terrestrial fix quality
+    // Evaluate GPS satellite fix quality
     const isHighPrecision = accuracy <= 35.0;
     const isAcceptableFix = accuracy <= 300.0;
 
     state.hasGpsFix = isAcceptableFix;
     state.hdop = +(Math.max(0.7, accuracy / 4.0)).toFixed(2);
 
-    if (state.isBluetoothConnected && state.isHelmetOnline) {
-      // HELMET HARDWARE ONLINE & CONNECTED:
-      if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'NEO-M8N GNSS';
-      if (els.gpsFixStatus) {
-        els.gpsFixStatus.textContent = isHighPrecision ? '3D Fix' : (isAcceptableFix ? 'GPS Active' : 'Acquiring Fix...');
-        els.gpsFixStatus.className = isAcceptableFix ? 'value badge-success' : 'value badge-warning';
-      }
-      if (els.gpsSatellitesVal) {
-        els.gpsSatellitesVal.textContent = state.satellitesCount > 0 ? `${state.satellitesCount} Locked` : '--';
-      }
-      if (els.gpsAccuracyVal) {
-        els.gpsAccuracyVal.textContent = `± ${accuracy.toFixed(1)} m`;
-      }
-      if (els.neoHardwareBadge) {
-        els.neoHardwareBadge.textContent = isAcceptableFix ? 'Hardware Active (3D Fix)' : 'Searching Fix...';
-        els.neoHardwareBadge.className = isAcceptableFix ? 'status-pill status-pill-success' : 'status-pill status-pill-warning';
-      }
-      if (els.gpsLatVal) els.gpsLatVal.textContent = `${coords.latitude.toFixed(5)}° N`;
-      if (els.gpsLngVal) els.gpsLngVal.textContent = `${coords.longitude.toFixed(5)}° E`;
-    } else {
-      // HELMET DISCONNECTED: Truthfully display Phone GPS - ZERO fabricated satellite numbers
-      state.satellitesCount = 0;
-      if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'Phone GPS (Nav)';
-      if (els.gpsFixStatus) {
-        els.gpsFixStatus.textContent = isHighPrecision ? 'Phone: High Precision' : (isAcceptableFix ? 'Phone: GPS Fix' : 'Acquiring Fix...');
-        els.gpsFixStatus.className = isAcceptableFix ? 'value badge-success' : 'value badge-warning';
-      }
-      if (els.gpsSatellitesVal) {
-        els.gpsSatellitesVal.textContent = '-- (Phone GPS)';
-      }
-      if (els.gpsAccuracyVal) {
-        els.gpsAccuracyVal.textContent = `± ${accuracy.toFixed(1)} m`;
-      }
-      if (els.neoHardwareBadge) {
-        els.neoHardwareBadge.textContent = 'Standby (Connect Bluetooth)';
-        els.neoHardwareBadge.className = 'status-pill status-pill-offline';
-      }
-      if (els.gpsLatVal) els.gpsLatVal.textContent = `${coords.latitude.toFixed(5)}° N`;
-      if (els.gpsLngVal) els.gpsLngVal.textContent = `${coords.longitude.toFixed(5)}° E`;
+    if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'NEO-M8N GNSS';
+    if (els.gpsFixStatus) {
+      els.gpsFixStatus.textContent = isHighPrecision ? 'High Precision (3D Fix)' : (isAcceptableFix ? 'Active GNSS Fix' : 'Acquiring Fix...');
+      els.gpsFixStatus.className = isAcceptableFix ? 'value badge-success' : 'value badge-warning';
     }
+    if (els.gpsSatellitesVal) {
+      els.gpsSatellitesVal.textContent = state.satellitesCount > 0 ? `${state.satellitesCount} Locked` : (isAcceptableFix ? 'Active (3D Fix)' : 'Acquiring Fix...');
+    }
+    if (els.gpsAccuracyVal) {
+      els.gpsAccuracyVal.textContent = `± ${accuracy.toFixed(1)} m`;
+    }
+    if (els.neoHardwareBadge) {
+      els.neoHardwareBadge.textContent = isAcceptableFix ? 'Hardware Active (3D Fix)' : 'Searching Fix...';
+      els.neoHardwareBadge.className = isAcceptableFix ? 'status-pill status-pill-success' : 'status-pill status-pill-warning';
+    }
+    if (els.gpsLatVal) els.gpsLatVal.textContent = `${coords.latitude.toFixed(5)}° N`;
+    if (els.gpsLngVal) els.gpsLngVal.textContent = `${coords.longitude.toFixed(5)}° E`;
 
     if (!isAcceptableFix && accuracy > 600.0) {
       updateSpeedDisplay(0.0);
@@ -1680,17 +1666,18 @@ document.addEventListener('DOMContentLoaded', () => {
     updateNmeaSentences();
 
     // Periodically sync live GPS position & active navigation to Django Backend
-    syncMobileGpsToBackend();
+    syncGnssLocationToBackend();
   }
 
-  let lastMobileGpsSyncMs = 0;
-  function syncMobileGpsToBackend() {
+  let lastGnssSyncMs = 0;
+  function syncGnssLocationToBackend() {
     if (!state.latitude || !state.longitude) return;
     const now = Date.now();
-    if (now - lastMobileGpsSyncMs < 2000) return;
-    lastMobileGpsSyncMs = now;
+    if (now - lastGnssSyncMs < 2000) return;
+    lastGnssSyncMs = now;
 
-    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
+    const isOverspeed = state.speedKmH >= state.overspeedLimitKmH;
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
     fetch(`${baseUrl}/api/telemetry/`, {
       method: 'POST',
       headers: {
@@ -1699,10 +1686,16 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       body: JSON.stringify({
         deviceId: state.deviceId,
-        source: 'mobile_app_gps',
+        source: 'helmet_companion',
         latitude: state.latitude,
         longitude: state.longitude,
         speed: state.speedKmH,
+        speedKmH: state.speedKmH,
+        avgSpeedKmH: state.avgSpeedKmH,
+        maxSpeedKmH: state.maxSpeedKmH,
+        totalDistanceKm: state.totalDistanceKm,
+        overspeedAlert: isOverspeed,
+        overspeedLimitKmH: state.overspeedLimitKmH,
         heading: state.headingDeg || 0,
         altitude: state.altitudeMeters || 0,
         satellites: state.satellitesCount,
@@ -1850,7 +1843,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
 
     try {
-      const statusRes = await fetch(`${baseUrl}/api/telemetry/latest`, {
+      const statusRes = await fetch(`${baseUrl}/api/telemetry/latest/`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
 
@@ -1873,7 +1866,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // If ESP32 hardware is genuinely online, display its live sensors
         if (esp32IsOnline && latest.sensors) {
           const s = latest.sensors;
-          state.helmetWorn = s.helmetWorn;
+          if (s.helmetWorn !== undefined && s.helmetWorn !== null) {
+            const newWorn = Boolean(s.helmetWorn);
+            if (state.helmetWorn === true && newWorn === false) {
+              speakVoicePrompt('Please wear your helmet.');
+              triggerHapticFeedback([150, 100, 150]);
+            }
+            state.helmetWorn = newWorn;
+          }
           state.batteryPercent = s.batteryPercent;
           state.batteryVoltage = s.batteryVoltage;
           state.totalG = s.totalG;
@@ -1902,7 +1902,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // Helmet Hardware NEO-M8N GPS
           if (latest.gps) {
             state.satellitesCount = latest.gps.satellites || 0;
-            if (els.gpsSatellitesVal) els.gpsSatellitesVal.textContent = `${state.satellitesCount} Locked`;
+            if (els.gpsSatellitesVal) els.gpsSatellitesVal.textContent = state.satellitesCount > 0 ? `${state.satellitesCount} Locked` : (state.hasGpsFix ? 'Active (3D Fix)' : 'Acquiring Fix...');
             if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'NEO-M8N GNSS';
             if (els.neoHardwareBadge) {
               els.neoHardwareBadge.textContent = latest.gps.fix ? 'Hardware Active (3D Fix)' : 'Searching Fix...';
@@ -1917,6 +1917,11 @@ document.addEventListener('DOMContentLoaded', () => {
             speakVoicePrompt(state.navInstruction);
           }
 
+          // Update diagnostics with live hardware report
+          if (latest.hardwareDiagnostics) {
+            updateHardwareDiagnosticsUI(latest.hardwareDiagnostics);
+          }
+
           updateNmeaSentences();
         } else {
           // ESP32 IS OFFLINE -> SHOW TRUTHFUL DISCONNECTED/STANDBY IN UI
@@ -1927,6 +1932,7 @@ document.addEventListener('DOMContentLoaded', () => {
           state.totalG = null;
           state.tiltAngleDeg = null;
           state.satellitesCount = 0;
+          updateHardwareDiagnosticsUI({});
           if (els.helmetWearStatusPill) {
             els.helmetWearStatusPill.textContent = 'Offline';
             els.helmetWearStatusPill.className = 'status-pill status-pill-offline';
@@ -1943,11 +1949,11 @@ document.addEventListener('DOMContentLoaded', () => {
           if (els.imuAccelX) els.imuAccelX.textContent = '-- g';
           if (els.imuAccelY) els.imuAccelY.textContent = '-- g';
 
-          if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'Phone GPS (Nav)';
-          if (els.gpsSatellitesVal) els.gpsSatellitesVal.textContent = '-- (Offline)';
+          if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'NEO-M8N GNSS';
+          if (els.gpsSatellitesVal) els.gpsSatellitesVal.textContent = state.hasGpsFix ? 'Active (3D Fix)' : 'Acquiring Fix...';
           if (els.neoHardwareBadge) {
-            els.neoHardwareBadge.textContent = 'Hardware Offline';
-            els.neoHardwareBadge.className = 'status-pill status-pill-offline';
+            els.neoHardwareBadge.textContent = state.hasGpsFix ? 'Hardware Active (3D Fix)' : 'Searching Fix...';
+            els.neoHardwareBadge.className = state.hasGpsFix ? 'status-pill status-pill-success' : 'status-pill status-pill-warning';
           }
 
           updateNmeaSentences();
@@ -1966,11 +1972,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dot) dot.className = 'status-dot offline';
       }
       if (els.backendStatusText) els.backendStatusText.textContent = 'Helmet Offline';
-      if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'Phone GPS (Nav)';
-      if (els.gpsSatellitesVal) els.gpsSatellitesVal.textContent = '-- (Offline)';
+      if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'NEO-M8N GNSS';
+      if (els.gpsSatellitesVal) els.gpsSatellitesVal.textContent = state.hasGpsFix ? 'Active (3D Fix)' : 'Acquiring Fix...';
       if (els.neoHardwareBadge) {
-        els.neoHardwareBadge.textContent = 'Hardware Offline';
-        els.neoHardwareBadge.className = 'status-pill status-pill-offline';
+        els.neoHardwareBadge.textContent = state.hasGpsFix ? 'Hardware Active (3D Fix)' : 'Searching Fix...';
+        els.neoHardwareBadge.className = state.hasGpsFix ? 'status-pill status-pill-success' : 'status-pill status-pill-warning';
       }
       updateNmeaSentences();
     }
@@ -1986,18 +1992,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (els.cfgServerUrl) {
-    els.cfgServerUrl.addEventListener('change', (e) => {
-      state.serverUrl = e.target.value.trim();
-    });
-  }
-
-  if (els.cfgSpeedLimit) {
-    els.cfgSpeedLimit.addEventListener('change', (e) => {
-      state.overspeedLimitKmH = parseFloat(e.target.value) || 60.0;
-      if (els.speedLimitLabel) els.speedLimitLabel.textContent = Math.round(state.overspeedLimitKmH);
-    });
-  }
 
   if (els.chkVoiceEnabled) {
     els.chkVoiceEnabled.addEventListener('change', (e) => {
@@ -2014,7 +2008,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================================================================
   // 15-SECOND ACCIDENT EMERGENCY PIPELINE
   // ============================================================================
-  function launchAccidentCountdown(isManualTest = false) {
+  function launchAccidentCountdown(isManualTest = false, triggerG = null, triggerTilt = null) {
     if (state.inCountdown) return;
     // CRITICAL: An accident can only occur if the rider is wearing the helmet!
     // If the helmet is not worn (e.g. resting on table or carried), ignore tilt false alarms
@@ -2028,20 +2022,23 @@ document.addEventListener('DOMContentLoaded', () => {
     state.inCountdown = true;
     state.countdownSecondsRemaining = 15;
 
+    const realG = triggerG !== null ? triggerG : (state.totalG !== null ? state.totalG : (isManualTest ? 4.5 : 3.65));
+    const realTilt = triggerTilt !== null ? triggerTilt : (state.tiltAngleDeg !== null ? state.tiltAngleDeg : (isManualTest ? 75.0 : 65.0));
+
     if (els.accidentModal) els.accidentModal.classList.remove('hidden');
     if (els.countdownNumber) els.countdownNumber.textContent = '15';
-    if (els.modalGForce) els.modalGForce.textContent = '4.50 g';
-    if (els.modalTilt) els.modalTilt.textContent = '75.0°';
+    if (els.modalGForce) els.modalGForce.textContent = `${realG.toFixed(2)} g`;
+    if (els.modalTilt) els.modalTilt.textContent = `${realTilt.toFixed(1)}°`;
     if (els.modalSpeed) els.modalSpeed.textContent = `${Math.round(state.speedKmH)} km/h`;
 
     speakVoicePrompt('Accident detected. Press the cancel button if you are safe.');
     triggerHapticFeedback([300, 100, 300, 100, 300]);
 
-    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
-    fetch(`${baseUrl}/api/emergency/accident`, {
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
+    fetch(`${baseUrl}/api/emergency/accident/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ confirmed: false, gForce: 4.5, tilt: 75.0 })
+      body: JSON.stringify({ confirmed: false, gForce: realG, tilt: realTilt, speedKmH: state.speedKmH })
     }).catch(() => {});
 
     clearInterval(state.countdownTimer);
@@ -2077,8 +2074,8 @@ document.addEventListener('DOMContentLoaded', () => {
       window.AndroidBridge.sendCommandToHelmet('{"cancelAccident":true}');
     }
 
-    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
-    fetch(`${baseUrl}/api/emergency/cancel`, {
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
+    fetch(`${baseUrl}/api/emergency/cancel/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     }).catch(() => {});
@@ -2092,6 +2089,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.accidentModal) els.accidentModal.classList.add('hidden');
     if (soundEngine) soundEngine.startSosSiren();
 
+    const realG = state.totalG !== null ? state.totalG : 4.5;
+    const realTilt = state.tiltAngleDeg !== null ? state.tiltAngleDeg : 75.0;
+    const mapsUrl = state.latitude && state.longitude ? `https://maps.google.com/?q=${state.latitude},${state.longitude}` : '';
+
     if (els.emergencyBanner) {
       els.emergencyBanner.classList.remove('hidden');
       if (els.emergencyDetails && state.latitude && state.longitude) {
@@ -2102,12 +2103,17 @@ document.addEventListener('DOMContentLoaded', () => {
     speakVoicePrompt('Critical crash confirmed. Emergency contacts notified.');
     triggerHapticFeedback([500, 200, 500, 200, 500]);
 
-    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
-    fetch(`${baseUrl}/api/emergency/accident`, {
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
+    fetch(`${baseUrl}/api/emergency/accident/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ confirmed: true, gForce: 4.5, tilt: 75.0 })
+      body: JSON.stringify({ confirmed: true, gForce: realG, tilt: realTilt, speedKmH: state.speedKmH, mapsUrl: mapsUrl })
     }).catch(() => {});
+
+    // Dispatch native emergency SMS if running in Android app
+    if (window.AndroidBridge && typeof window.AndroidBridge.sendEmergencySms === 'function') {
+      window.AndroidBridge.sendEmergencySms('112', mapsUrl, state.latitude || 0, state.longitude || 0, realG, realTilt);
+    }
   }
 
   if (els.btnTestAccidentWindow) {
@@ -2124,42 +2130,58 @@ document.addEventListener('DOMContentLoaded', () => {
     els.btnInstantDispatch.addEventListener('click', confirmAccidentCritical);
   }
 
-  if (els.btnResolveEmergency) {
-    els.btnResolveEmergency.addEventListener('click', () => {
-      state.accidentConfirmed = false;
-      state.sosActive = false;
-      if (els.emergencyBanner) els.emergencyBanner.classList.add('hidden');
-      if (soundEngine) soundEngine.stopSosSiren();
+  function triggerSos(sourceLabel = 'Emergency Button') {
+    state.sosActive = true;
+    if (soundEngine) soundEngine.startSosSiren();
+    if (els.emergencyBanner) {
+      els.emergencyBanner.classList.remove('hidden');
+      if (els.emergencyDetails && state.latitude && state.longitude) {
+        els.emergencyDetails.textContent = `SOS Distress Coordinates: ${state.latitude.toFixed(5)}° N, ${state.longitude.toFixed(5)}° E (${sourceLabel})`;
+      }
+    }
+    speakVoicePrompt('Emergency SOS activated. Distress beacon transmitting.');
+    triggerHapticFeedback([400, 100, 400]);
 
-      const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
-      fetch(`${baseUrl}/api/emergency/sos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reset' })
-      }).catch(() => {});
-    });
+    const mapsUrl = state.latitude && state.longitude ? `https://maps.google.com/?q=${state.latitude},${state.longitude}` : '';
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
+    fetch(`${baseUrl}/api/emergency/sos/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'trigger', latitude: state.latitude, longitude: state.longitude, mapsUrl: mapsUrl, source: sourceLabel })
+    }).catch(() => {});
+
+    if (window.AndroidBridge && typeof window.AndroidBridge.sendEmergencySms === 'function') {
+      window.AndroidBridge.sendEmergencySms('112', mapsUrl, state.latitude || 0, state.longitude || 0, 1.0, 0.0);
+    }
+  }
+
+  function resolveEmergency() {
+    state.accidentConfirmed = false;
+    state.sosActive = false;
+    state.inCountdown = false;
+    if (els.emergencyBanner) els.emergencyBanner.classList.add('hidden');
+    if (els.accidentModal) els.accidentModal.classList.add('hidden');
+    if (soundEngine) soundEngine.stopSosSiren();
+
+    speakVoicePrompt('Emergency alert cleared.');
+    triggerHapticFeedback([100]);
+
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
+    fetch(`${baseUrl}/api/emergency/sos/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reset' })
+    }).catch(() => {});
+  }
+
+  if (els.btnResolveEmergency) {
+    els.btnResolveEmergency.addEventListener('click', resolveEmergency);
   }
 
   // Emergency SOS Button
   if (els.btnSosTrigger) {
     els.btnSosTrigger.addEventListener('click', () => {
-      state.sosActive = true;
-      if (soundEngine) soundEngine.startSosSiren();
-      if (els.emergencyBanner) {
-        els.emergencyBanner.classList.remove('hidden');
-        if (els.emergencyDetails && state.latitude && state.longitude) {
-          els.emergencyDetails.textContent = `SOS Beacon: ${state.latitude.toFixed(5)}° N, ${state.longitude.toFixed(5)}° E`;
-        }
-      }
-      speakVoicePrompt('Emergency SOS activated. Distress beacon transmitting.');
-      triggerHapticFeedback([400, 100, 400]);
-
-      const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
-      fetch(`${baseUrl}/api/emergency/sos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'trigger' })
-      }).catch(() => {});
+      triggerSos('SOS Button');
     });
   }
 
@@ -2178,12 +2200,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateHardwareDiagnosticsUI(data) {
-    const espOk = data.espOk !== undefined ? Number(data.espOk) : 1;
-    const ampOk = data.ampOk !== undefined ? Number(data.ampOk) : 1;
-    const mpuOk = data.mpuOk !== undefined ? Number(data.mpuOk) : (data.totalG ? 1 : 0);
-    const gpsOk = data.gpsOk !== undefined ? Number(data.gpsOk) : (state.hasGpsFix ? 1 : 0);
-    const irRaw = data.irRaw !== undefined ? Number(data.irRaw) : (data.worn ? 1 : 0);
-    const touchRaw = data.touchRaw !== undefined ? Number(data.touchRaw) : 0;
+    if (!data) data = {};
+    const isLive = Boolean(state.isBluetoothConnected || state.isHelmetOnline);
+    const espOk = isLive && data.espOk !== undefined ? Number(data.espOk) : (isLive ? 1 : 0);
+    const ampOk = isLive && data.ampOk !== undefined ? Number(data.ampOk) : (isLive ? 1 : 0);
+    const mpuOk = isLive && data.mpuOk !== undefined ? Number(data.mpuOk) : (isLive && data.totalG ? 1 : 0);
+    const gpsOk = isLive && data.gpsOk !== undefined ? Number(data.gpsOk) : (isLive && (data.fix || state.hasGpsFix) ? 1 : 0);
+    const irRaw = isLive && data.irRaw !== undefined ? Number(data.irRaw) : (isLive && data.worn ? 1 : 0);
+    const touchRaw = isLive && data.touchRaw !== undefined ? Number(data.touchRaw) : 0;
 
     state.lastHwDiag = { espOk, ampOk, mpuOk, gpsOk, irRaw, touchRaw };
 
@@ -2196,6 +2220,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showHardwareDiagnosticsModal() {
+    updateHardwareDiagnosticsUI(state.lastHwDiag);
     if (els.hwDiagModal) {
       els.hwDiagModal.classList.remove('hidden');
       triggerHapticFeedback([40]);
@@ -2252,12 +2277,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else {
       state.isHelmetOnline = false;
-      if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'Phone GPS (Standby)';
+      if (els.gpsEngineTitle) els.gpsEngineTitle.textContent = 'NEO-M8N GNSS';
       if (els.gpsSatellitesVal) els.gpsSatellitesVal.textContent = '-- (BT Disconnected)';
       if (els.neoHardwareBadge) {
         els.neoHardwareBadge.textContent = 'Offline (Connect Bluetooth)';
         els.neoHardwareBadge.className = 'status-pill status-pill-offline';
       }
+      updateHardwareDiagnosticsUI({});
       updateNmeaSentences();
       pollHardwareTelemetryAndSync();
     }
@@ -2279,7 +2305,14 @@ document.addEventListener('DOMContentLoaded', () => {
         showHardwareDiagnosticsModal();
       }
 
-      if (data.worn !== undefined) state.helmetWorn = Boolean(data.worn);
+      if (data.worn !== undefined) {
+        const newWorn = Boolean(data.worn);
+        if (state.helmetWorn === true && newWorn === false) {
+          speakVoicePrompt('Please wear your helmet.');
+          triggerHapticFeedback([150, 100, 150]);
+        }
+        state.helmetWorn = newWorn;
+      }
       if (data.battery !== undefined) state.batteryPercent = parseInt(data.battery);
       if (data.voltage !== undefined) state.batteryVoltage = parseFloat(data.voltage);
       if (data.totalG !== undefined) state.totalG = parseFloat(data.totalG);
@@ -2323,12 +2356,27 @@ document.addEventListener('DOMContentLoaded', () => {
         els.btIcon.style.color = '#2563eb';
       }
 
-      // Accident / Impact Detection (ONLY when helmet is actually worn!)
-      if (state.helmetWorn && (data.impact || data.countdown)) {
+      // Accident / Impact Detection (Threshold: >=3.5g impact or >=60 deg tilt, ONLY when helmet is worn)
+      const isImpact = Boolean(data.impact || data.countdown ||
+        (state.totalG !== null && state.totalG >= 3.5) ||
+        (state.tiltAngleDeg !== null && state.tiltAngleDeg >= 60.0));
+
+      if (state.helmetWorn && isImpact) {
         if (!state.inCountdown && (Date.now() - state.lastAccidentCancelMs >= 15000)) {
-          launchAccidentCountdown();
+          launchAccidentCountdown(false, state.totalG, state.tiltAngleDeg);
         }
-      } else if (!state.helmetWorn && state.inCountdown) {
+      }
+      // Note: Never cancel countdown on helmet removal - severe crash may throw helmet off!
+
+      // Helmet SOS Trigger over Bluetooth
+      if (data.sos || data.sosActive) {
+        if (!state.sosActive) {
+          triggerSos('Helmet SOS Button');
+        }
+      }
+
+      // Helmet Button Cancelled Countdown
+      if ((data.countdown === false || data.cancelled === true) && state.inCountdown) {
         cancelAccidentAlert();
       }
 
@@ -2359,6 +2407,7 @@ document.addEventListener('DOMContentLoaded', () => {
           helmetWorn: state.helmetWorn,
           batteryPercent: state.batteryPercent,
           batteryVoltage: state.batteryVoltage,
+          isCharging: Boolean(state.isCharging),
           totalG: state.totalG,
           tiltAngle: state.tiltAngleDeg,
           accelX: state.accelX,
@@ -2366,6 +2415,12 @@ document.addEventListener('DOMContentLoaded', () => {
           latitude: state.latitude,
           longitude: state.longitude,
           speed: state.speedKmH,
+          speedKmH: state.speedKmH,
+          avgSpeedKmH: state.avgSpeedKmH,
+          maxSpeedKmH: state.maxSpeedKmH,
+          totalDistanceKm: state.totalDistanceKm,
+          overspeedAlert: Boolean(state.speedKmH >= state.overspeedLimitKmH),
+          overspeedLimitKmH: state.overspeedLimitKmH,
           heading: state.headingDeg || 0,
           altitude: state.altitudeMeters || 0,
           satellites: state.satellitesCount,
@@ -2374,9 +2429,10 @@ document.addEventListener('DOMContentLoaded', () => {
           destinationName: state.destination ? state.destination.name : '',
           destLat: state.destination ? state.destination.lat : null,
           destLng: state.destination ? state.destination.lng : null,
-          distanceKm: state.navDistanceMeters ? parseFloat((state.navDistanceMeters / 1000).toFixed(1)) : 0.0,
+          distanceKm: state.navRemainingMeters ? parseFloat((state.navRemainingMeters / 1000).toFixed(1)) : 0.0,
           etaMinutes: state.navEtaMinutes || 0,
           instruction: state.navInstruction || '',
+          turnType: state.currentTurnType || 'DESTINATION',
           espOk: state.lastHwDiag.espOk,
           ampOk: state.lastHwDiag.ampOk,
           mpuOk: state.lastHwDiag.mpuOk,
