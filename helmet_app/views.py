@@ -62,28 +62,30 @@ def api_telemetry(request):
         now = timezone.now()
 
         source = data.get('source', '')
+        is_companion_gps = source in ('mobile_app_gps', 'mobile_app', 'web_companion')
+        # Physical hardware telemetry originates from the ESP32 directly or native Bluetooth link
+        is_hardware = (source in ('esp32', 'bluetooth_serial', 'mobile_app_bluetooth') or
+                       ('espOk' in data and not is_companion_gps))
 
-        # Mark device online if telemetry is received from ESP32 or Mobile App Companion
-        if source in ('esp32', 'bluetooth_serial', 'mobile_app_bluetooth', 'mobile_app', 'mobile_app_gps'):
+        if is_hardware:
             state.online = True
             state.last_seen = now
-        elif 'latitude' in data or 'totalG' in data or 'helmetWorn' in data or 'batteryVoltage' in data or 'espOk' in data:
-            state.online = True
-            state.last_seen = now
 
-        # Ingest 1/0 Hardware Component Connection Status for Diagnostics (if provided)
-        for key in ['espOk', 'ampOk', 'mpuOk', 'gpsOk', 'irRaw', 'touchRaw', 'touchInst']:
-            if key in data:
-                latest_hardware_diagnostics[key] = int(data[key])
+        # Ingest 1/0 Hardware Component Connection Status for Diagnostics (ONLY from physical hardware)
+        if is_hardware:
+            for key in ['espOk', 'ampOk', 'mpuOk', 'gpsOk', 'irRaw', 'touchRaw', 'touchInst']:
+                if key in data:
+                    latest_hardware_diagnostics[key] = int(data[key])
 
-        # GPS Data
+        # GPS Data (Updated by either physical NEO-M8N hardware or companion phone GPS)
         if 'latitude' in data and 'longitude' in data:
             state.latitude = float(data.get('latitude', state.latitude))
             state.longitude = float(data.get('longitude', state.longitude))
             state.speed_kmh = float(data.get('speed', data.get('speedKmH', state.speed_kmh)))
             state.altitude_m = float(data.get('altitude', state.altitude_m))
-            state.satellites = int(data.get('satellites', state.satellites))
-            state.gps_fix = bool(data.get('fix', True))
+            if is_hardware:
+                state.satellites = int(data.get('satellites', state.satellites))
+                state.gps_fix = bool(data.get('fix', True))
             if 'heading' in data:
                 state.heading = float(data.get('heading', state.heading))
             if 'totalDistanceKm' in data:
@@ -110,48 +112,49 @@ def api_telemetry(request):
             elif not is_overspeed:
                 state.overspeed_alert = False
 
-        # Helmet Hardware Sensors (from ESP32 or Bluetooth Mobile Bridge)
-        # Helmet Wear Detection (IR Sensor)
-        if 'helmetWorn' in data:
-            was_worn = state.helmet_worn
-            state.helmet_worn = bool(data['helmetWorn'])
-            if was_worn != state.helmet_worn:
-                if state.helmet_worn:
-                    IncidentAlert.objects.create(
-                        device_id=device_id,
-                        alert_type='HELMET_STATUS',
-                        message='Helmet worn and secured. Ignition relay enabled.',
-                        severity='success'
-                    )
-                else:
-                    IncidentAlert.objects.create(
-                        device_id=device_id,
-                        alert_type='HELMET_STATUS',
-                        message='Helmet removed! Ignition relay locked. Voice: "Please wear your helmet."',
-                        severity='warning'
-                    )
+        # Helmet Hardware Sensors (ONLY from genuine ESP32 physical hardware)
+        if is_hardware:
+            # Helmet Wear Detection (IR Sensor)
+            if 'helmetWorn' in data:
+                was_worn = state.helmet_worn
+                state.helmet_worn = bool(data['helmetWorn'])
+                if was_worn != state.helmet_worn:
+                    if state.helmet_worn:
+                        IncidentAlert.objects.create(
+                            device_id=device_id,
+                            alert_type='HELMET_STATUS',
+                            message='Helmet worn and secured. Ignition relay enabled.',
+                            severity='success'
+                        )
+                    else:
+                        IncidentAlert.objects.create(
+                            device_id=device_id,
+                            alert_type='HELMET_STATUS',
+                            message='Helmet removed! Ignition relay locked. Voice: "Please wear your helmet."',
+                            severity='warning'
+                        )
 
-        # MPU6050 IMU Data
-        if 'totalG' in data:
-            state.total_g = float(data['totalG'])
-        if 'tiltAngle' in data:
-            state.tilt_angle = float(data['tiltAngle'])
-        if 'accelX' in data:
-            state.accel_x = float(data['accelX'])
-        if 'accelY' in data:
-            state.accel_y = float(data['accelY'])
-        if 'accelZ' in data:
-            state.accel_z = float(data['accelZ'])
+            # MPU6050 IMU Data
+            if 'totalG' in data:
+                state.total_g = float(data['totalG'])
+            if 'tiltAngle' in data:
+                state.tilt_angle = float(data['tiltAngle'])
+            if 'accelX' in data:
+                state.accel_x = float(data['accelX'])
+            if 'accelY' in data:
+                state.accel_y = float(data['accelY'])
+            if 'accelZ' in data:
+                state.accel_z = float(data['accelZ'])
 
-        # Battery Telemetry (Required Li-Ion Sensing)
-        if 'batteryVoltage' in data:
-            state.battery_voltage = float(data['batteryVoltage'])
-            state.battery_percent = calculate_battery_percent(state.battery_voltage)
-        elif 'batteryPercent' in data:
-            state.battery_percent = int(data['batteryPercent'])
+            # Battery Telemetry (Required Li-Ion Sensing)
+            if 'batteryVoltage' in data:
+                state.battery_voltage = float(data['batteryVoltage'])
+                state.battery_percent = calculate_battery_percent(state.battery_voltage)
+            elif 'batteryPercent' in data:
+                state.battery_percent = int(data['batteryPercent'])
 
-        if 'isCharging' in data:
-            state.is_charging = bool(data['isCharging'])
+            if 'isCharging' in data:
+                state.is_charging = bool(data['isCharging'])
 
         # SOS Push Button Trigger
         if data.get('sosActive') and not state.sos_active:
@@ -240,7 +243,12 @@ def api_telemetry_latest(request):
 
     if state.online != is_online:
         state.online = is_online
-        state.save(update_fields=['online'])
+        if not is_online:
+            state.helmet_worn = False
+        state.save(update_fields=['online', 'helmet_worn'] if not is_online else ['online'])
+    elif not is_online and state.helmet_worn:
+        state.helmet_worn = False
+        state.save(update_fields=['helmet_worn'])
 
     return JsonResponse({
         'deviceId': state.device_id,
@@ -524,8 +532,6 @@ def api_navigation_destination(request):
         if 'latitude' in data and 'longitude' in data and data['latitude'] is not None and data['longitude'] is not None:
             state.latitude = float(data['latitude'])
             state.longitude = float(data['longitude'])
-            state.last_seen = now
-            state.online = True
 
         state.save()
 

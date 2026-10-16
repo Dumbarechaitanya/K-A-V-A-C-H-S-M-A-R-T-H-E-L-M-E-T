@@ -517,6 +517,15 @@ document.addEventListener('DOMContentLoaded', () => {
     addLog('NAVIGATION', `Voice Guidance: "${step.inst}"`, 'info');
   }
 
+  function formatEtaDuration(totalMins) {
+    totalMins = Math.max(0, Math.round(totalMins));
+    if (totalMins === 0) return '-- mins';
+    if (totalMins < 60) return `${totalMins} mins`;
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    return mins > 0 ? `${hrs} hr ${mins} min` : `${hrs} hr`;
+  }
+
   // Dashboard Live Navigation Sync (from Mobile App or Cloud Server)
   let navRoutePolyline = null;
   function updateDashboardNavigation(navData) {
@@ -535,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Update HUD elements
       if (els.navDestName) els.navDestName.textContent = state.navigation.destinationName;
       if (els.navDistRem) els.navDistRem.textContent = `${state.navigation.distanceRemainingKm.toFixed(1)} km`;
-      if (els.navEtaMin) els.navEtaMin.textContent = `${state.navigation.etaMinutes} mins`;
+      if (els.navEtaMin) els.navEtaMin.textContent = formatEtaDuration(state.navigation.etaMinutes);
       if (els.navInstructionText) els.navInstructionText.textContent = state.navigation.instruction;
 
       // Update Turn Icon
@@ -907,37 +916,37 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Helmet Wear Detection
-      if (data.sensors && data.sensors.helmetWorn !== undefined) {
+      if (isOnline && data.sensors && data.sensors.helmetWorn !== null && data.sensors.helmetWorn !== undefined) {
         const worn = Boolean(data.sensors.helmetWorn);
         if (state.helmetWorn !== worn) {
           updateWearStatus(worn);
         }
+      } else if (!isOnline && !state.simRunning) {
+        if (state.helmetWorn !== false) {
+          updateWearStatus(false);
+        }
       }
 
       // Li-Ion Battery Telemetry
-      if (data.sensors && (data.sensors.batteryVoltage !== undefined || data.sensors.batteryPercent !== undefined)) {
+      if (isOnline && data.sensors && (data.sensors.batteryVoltage !== null || data.sensors.batteryPercent !== null)) {
         const voltage = parseFloat(data.sensors.batteryVoltage || 4.12);
         const charging = Boolean(data.sensors.isCharging);
         updateBattery(voltage, charging);
       }
 
       // MPU6050 IMU
-      if (data.sensors && data.sensors.totalG !== undefined) {
+      if (isOnline && data.sensors && data.sensors.totalG !== null) {
         const totalG = parseFloat(data.sensors.totalG || 1.0);
         const tilt = parseFloat(data.sensors.tiltAngle || 0.0);
         updateIMU(totalG, tilt, data.sensors.accelX, data.sensors.accelY, data.sensors.accelZ);
       }
 
       // Emergency Alerts
-      if (data.sensors && data.sensors.sosActive && !state.sosActive) {
+      if (isOnline && data.sensors && data.sensors.sosActive && !state.sosActive) {
         triggerSos('Helmet SOS Button / Mobile App');
       }
-      if (data.emergency && data.emergency.accidentTriggered && !state.accidentActive) {
+      if (isOnline && data.emergency && data.emergency.accidentTriggered && !state.accidentActive) {
         triggerAccidentAlert(state.totalG || 4.2, state.tiltAngle || 70);
-      }
-
-      if (!isOnline && !state.simRunning) {
-        if (!state.helmetWorn) updateWearStatus(false);
       }
     } catch (e) {
       console.warn('Django telemetry poll error:', e);

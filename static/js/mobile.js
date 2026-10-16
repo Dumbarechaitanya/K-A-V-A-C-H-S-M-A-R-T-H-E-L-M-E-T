@@ -452,6 +452,39 @@ document.addEventListener('DOMContentLoaded', () => {
     return R * c;
   }
 
+  // Realistic Two-Wheeler / Indian Road Conditions Speed Calibration
+  // Accounts for urban traffic, ghat sections (e.g. Malshej Ghat NH61), and road conditions
+  function calculateRealisticTravelMinutes(distanceMeters, osrmDurationSeconds) {
+    const distKm = distanceMeters / 1000;
+    let avgSpeedKmh;
+    if (distKm <= 5) {
+      avgSpeedKmh = 20.0; // Dense urban traffic, traffic signals
+    } else if (distKm <= 15) {
+      avgSpeedKmh = 25.0; // Suburban city roads
+    } else if (distKm <= 40) {
+      avgSpeedKmh = 32.0; // Mixed arterial / state highways
+    } else {
+      // Long distance / Highway + Ghat corridors (e.g. Dombivli-Otur via NH61 Malshej Ghat):
+      // 121.6 km / 40.5 km/h = 3.00 hrs = 180 mins (~3 hr 0 min), matching Google Maps' 3 hr 2 min!
+      avgSpeedKmh = 40.5;
+    }
+
+    const realisticMins = Math.round((distKm / avgSpeedKmh) * 60);
+    const osrmMins = osrmDurationSeconds ? Math.round(osrmDurationSeconds / 60) : 0;
+    return Math.max(1, Math.max(realisticMins, osrmMins));
+  }
+
+  // Format Duration in Google Maps style: "3 hr 2 min" or "45 mins"
+  function formatEtaDuration(totalMins) {
+    totalMins = Math.max(1, Math.round(totalMins));
+    if (totalMins < 60) {
+      return `${totalMins} mins`;
+    }
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    return mins > 0 ? `${hrs} hr ${mins} min` : `${hrs} hr`;
+  }
+
   function snapPointToSegment(pLat, pLng, aLat, aLng, bLat, bLng) {
     const cosLat = Math.cos(aLat * Math.PI / 180);
     const dx = (bLng - aLng) * 111320 * cosLat;
@@ -616,12 +649,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (routeData) {
       latLngs = routeData.geometry.coordinates.map(coord => [coord[1], coord[0]]);
       distKm = (routeData.distance / 1000).toFixed(1);
-      etaMins = Math.max(1, Math.round(routeData.duration / 60));
+      etaMins = calculateRealisticTravelMinutes(routeData.distance, routeData.duration);
 
       state.navRouteCoords = latLngs;
       state.navRouteSteps = (routeData.legs && routeData.legs[0] && routeData.legs[0].steps) ? routeData.legs[0].steps : [];
       state.navRemainingMeters = routeData.distance;
-      state.navRemainingSeconds = routeData.duration;
+      state.navRemainingSeconds = etaMins * 60;
       state.navDistanceMeters = routeData.distance;
       state.navEtaMinutes = etaMins;
 
@@ -640,7 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
       latLngs = [[curLat, curLng], [destLat, destLng]];
       const distM = calcHaversineMeters(curLat, curLng, destLat, destLng);
       distKm = (distM / 1000).toFixed(1);
-      etaMins = Math.max(1, Math.round((parseFloat(distKm) / 25) * 60));
+      etaMins = calculateRealisticTravelMinutes(distM, 0);
       firstInstruction = `Head towards ${destName}`;
       firstTurnType = 'STRAIGHT';
 
@@ -694,20 +727,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    const etaFormatted = formatEtaDuration(etaMins);
+
     // Update Preview HUD & Details Card
     if (els.guidanceDistanceVal) els.guidanceDistanceVal.textContent = `${distKm} km`;
-    if (els.guidanceEtaVal) els.guidanceEtaVal.textContent = `ETA: ${etaMins} mins`;
+    if (els.guidanceEtaVal) els.guidanceEtaVal.textContent = `ETA: ${etaFormatted}`;
     if (els.guidanceInstructionText) els.guidanceInstructionText.textContent = firstInstruction;
 
     if (els.navStatDist) els.navStatDist.textContent = `${distKm} km`;
-    if (els.navStatEta) els.navStatEta.textContent = `${etaMins} mins`;
-    if (els.navSelectedDesc) els.navSelectedDesc.textContent = `${distKm} km road distance • ~${etaMins} mins travel time`;
+    if (els.navStatEta) els.navStatEta.textContent = etaFormatted;
+    if (els.navSelectedDesc) els.navSelectedDesc.textContent = `${distKm} km road distance • ~${etaFormatted} travel time`;
+
+    const etaVoiceText = etaMins >= 60
+      ? `${Math.floor(etaMins / 60)} hours ${etaMins % 60 > 0 ? (etaMins % 60) + ' minutes' : ''}`
+      : `${etaMins} minutes`;
 
     if (isRecalculation) {
       speakVoicePrompt(`New route found. ${firstInstruction}.`);
       updateActiveNavigationHUD();
     } else if (!state.isNavigating) {
-      speakVoicePrompt(`Route found to ${destName}. Distance: ${distKm} kilometers, ETA: ${etaMins} minutes. Tap Start Navigation to begin.`);
+      speakVoicePrompt(`Route found to ${destName}. Distance: ${distKm} kilometers, ETA: ${etaVoiceText}. Tap Start Navigation to begin.`);
     }
 
     // Sync active road route to Django backend & Browser Dashboard!
@@ -889,14 +928,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Dynamic ETA calculation
     const totalRemKm = Math.max(0.1, distToDest / 1000);
-    const speedKmh = Math.max(state.speedKmH || 0, 15.0); // assume min 15 km/h for ETA
+    const speedKmh = (state.speedKmH && state.speedKmH > 15)
+      ? Math.min(state.speedKmH, 60.0)
+      : (totalRemKm > 40 ? 40.5 : (totalRemKm > 15 ? 32.0 : 25.0));
     const etaMins = Math.max(1, Math.round((totalRemKm / speedKmh) * 60));
 
     const arrivalDate = new Date(Date.now() + etaMins * 60000);
     const etaTimeString = arrivalDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     if (els.cockpitEtaTime) els.cockpitEtaTime.textContent = etaTimeString;
-    if (els.cockpitEtaMins) els.cockpitEtaMins.textContent = `${etaMins} min`;
+    if (els.cockpitEtaMins) els.cockpitEtaMins.textContent = formatEtaDuration(etaMins);
     if (els.cockpitDistRem) els.cockpitDistRem.textContent = `${totalRemKm.toFixed(1)} km`;
     if (els.cockpitSpeedSnap) els.cockpitSpeedSnap.textContent = `${Math.round(state.speedKmH)} km/h`;
 
@@ -1879,6 +1920,12 @@ document.addEventListener('DOMContentLoaded', () => {
           updateNmeaSentences();
         } else {
           // ESP32 IS OFFLINE -> SHOW TRUTHFUL DISCONNECTED/STANDBY IN UI
+          state.isHelmetOnline = false;
+          state.helmetWorn = null;
+          state.batteryPercent = null;
+          state.batteryVoltage = null;
+          state.totalG = null;
+          state.tiltAngleDeg = null;
           state.satellitesCount = 0;
           if (els.helmetWearStatusPill) {
             els.helmetWearStatusPill.textContent = 'Offline';
@@ -1909,6 +1956,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       // Backend unreachable
       state.isHelmetOnline = false;
+      state.helmetWorn = null;
+      state.batteryPercent = null;
+      state.batteryVoltage = null;
+      state.totalG = null;
+      state.tiltAngleDeg = null;
       if (els.backendStatusBadge) {
         const dot = els.backendStatusBadge.querySelector('.status-dot');
         if (dot) dot.className = 'status-dot offline';
@@ -2293,7 +2345,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.handleNativeHelmetBluetoothData = handleNativeHelmetBluetoothData;
 
   async function forwardMergedTelemetryToBackend() {
-    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : 'http://192.168.0.106:3000';
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : DEFAULT_BACKEND_URL;
     try {
       await fetch(`${baseUrl}/api/telemetry/`, {
         method: 'POST',
