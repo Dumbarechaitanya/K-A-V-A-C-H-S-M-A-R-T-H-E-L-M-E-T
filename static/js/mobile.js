@@ -977,6 +977,118 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Sync Destination to Backend & Browser Dashboard in Real-Time
+  async function syncDestinationToBackend(lat, lng, name, active = true, distKm = 0.0, etaMins = 0, instruction = '', turnType = 'STRAIGHT') {
+    const baseUrl = state.serverUrl ? state.serverUrl.replace(/\/$/, '') : '';
+    try {
+      await fetch(`${baseUrl}/api/navigation/destination/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+          active: active,
+          destinationName: name,
+          destLat: lat,
+          destLng: lng,
+          distanceKm: distKm,
+          etaMinutes: etaMins,
+          instruction: instruction,
+          turnType: turnType,
+          latitude: state.latitude,
+          longitude: state.longitude,
+          source: 'mobile_app'
+        })
+      });
+    } catch (e) {
+      console.warn('Failed to sync destination to backend:', e);
+    }
+  }
+
+  // Set Destination (from Map Click, Search, or Dropdown Selection)
+  async function setDestination(lat, lng, name = 'Selected Location') {
+    state.destination = { name, lat, lng };
+
+    // Update or create draggable destination marker
+    if (destMarker && leafletMap) {
+      destMarker.setLatLng([lat, lng]);
+      if (destMarker.getPopup()) {
+        destMarker.getPopup().setContent(`<b>${name}</b><br><small style="color:#64748b;">Drag pin to pinpoint exact gate/entrance</small>`);
+      }
+    } else if (leafletMap) {
+      const destPinHtml = `
+        <div style="position:relative; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:grab;">
+          <div style="position:absolute; width:14px; height:14px; border-radius:50%; background:rgba(239,68,68,0.4); animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></div>
+          <div style="width:30px; height:30px; border-radius:50%; background:#ef4444; border:3px solid #ffffff; box-shadow:0 3px 10px rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px;">
+            <i class="fa-solid fa-flag"></i>
+          </div>
+        </div>
+      `;
+      const destIcon = L.divIcon({
+        html: destPinHtml,
+        className: 'dest-pin-icon',
+        iconSize: [34, 34],
+        iconAnchor: [17, 30]
+      });
+      destMarker = L.marker([lat, lng], {
+        icon: destIcon,
+        draggable: true,
+        autoPan: true
+      }).addTo(leafletMap);
+
+      destMarker.bindPopup(`<b>${name}</b><br><small style="color:#64748b;">Drag pin to pinpoint exact gate/entrance</small>`);
+
+      destMarker.on('dragend', (e) => {
+        const newPos = e.target.getLatLng();
+        setDestination(newPos.lat, newPos.lng, state.destination ? state.destination.name : 'Custom Pinpoint');
+      });
+    }
+
+    // Show Active Destination Card & Start Button
+    if (els.navStatusEmpty) els.navStatusEmpty.classList.add('hidden');
+    if (els.navSelectedCard) els.navSelectedCard.classList.remove('hidden');
+    if (els.btnClearRouteHeader) els.btnClearRouteHeader.classList.remove('hidden');
+    if (els.navSelectedName) els.navSelectedName.textContent = name;
+    if (els.navSelectedDesc) els.navSelectedDesc.textContent = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)} • Calculating road route...`;
+    if (els.navStatDist) els.navStatDist.textContent = 'Calculating...';
+    if (els.navStatEta) els.navStatEta.textContent = 'Calculating...';
+
+    // Hide search results dropdown
+    const dropdown = els.searchResultsDropdown || document.getElementById('search-results-dropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+
+    // Pan map to destination initially while route calculates
+    if (leafletMap && !state.isNavigating) {
+      leafletMap.panTo([lat, lng]);
+    }
+
+    const curLat = state.latitude || 19.2184;
+    const curLng = state.longitude || 73.0867;
+
+    await calculateAndDisplayRoadRoute(curLat, curLng, lat, lng, name);
+
+    // If generic "Selected Location", resolve actual street or landmark via reverse geocoding
+    if (name === 'Selected Location') {
+      reverseGeocode(lat, lng).then(resolved => {
+        if (resolved && state.destination && state.destination.lat === lat && state.destination.lng === lng) {
+          state.destination.name = resolved;
+          if (els.navSelectedName) els.navSelectedName.textContent = resolved;
+          syncDestinationToBackend(
+            lat,
+            lng,
+            resolved,
+            true,
+            parseFloat(state.navDistanceMeters ? (state.navDistanceMeters / 1000).toFixed(1) : 0),
+            state.navEtaMinutes || 0,
+            state.navInstruction,
+            state.currentTurnType
+          );
+        }
+      });
+    }
+  }
+
   // Clear Destination / Cancel Navigation
   function clearDestination() {
     if (state.isNavigating) {
@@ -1120,18 +1232,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     places.slice(0, 6).forEach(place => {
       const btn = document.createElement('button');
+      btn.type = 'button';
       btn.className = 'search-result-item';
       btn.innerHTML = `
-        <i class="fa-solid fa-location-dot" style="color:#2563eb; font-size:1rem; flex-shrink:0;"></i>
-        <div class="search-result-meta">
-          <strong>${place.name}</strong>
-          <span>${place.desc || place.display_name || ''}</span>
+        <i class="fa-solid fa-location-dot" style="color:#2563eb; font-size:1.1rem; flex-shrink:0;"></i>
+        <div class="search-result-meta" style="flex:1; text-align:left;">
+          <strong style="display:block; font-size:0.95rem; color:#0f172a;">${place.name}</strong>
+          <span style="display:block; font-size:0.8rem; color:#64748b;">${place.desc || place.display_name || ''}</span>
         </div>
+        <i class="fa-solid fa-chevron-right" style="color:#94a3b8; font-size:0.8rem;"></i>
       `;
-      btn.onclick = () => {
+      const selectThis = (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         dropdown.classList.add('hidden');
+        const input = els.destSearchInput || document.getElementById('dest-search-input');
+        if (input) input.value = place.name;
         setDestination(place.lat, place.lng, place.name);
       };
+      btn.onclick = selectThis;
+      btn.ontouchend = selectThis;
       dropdown.appendChild(btn);
     });
     dropdown.classList.remove('hidden');
@@ -1232,29 +1351,50 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // If exact single match and matches query, select directly; otherwise show dropdown of options
-    if (combined.length === 1 && combined[0].name.toLowerCase() === qLower) {
-      setDestination(combined[0].lat, combined[0].lng, combined[0].name);
-    } else {
-      renderSearchResults(combined);
-      // If user typed a specific college/landmark name and the first result is a strong match
-      const first = combined[0];
-      if (qLower.includes('jondhale') || qLower.includes('shivajirao') || qLower.includes('ssjcoe')) {
-        const target = (qLower.includes('polytechnic') || qLower.includes('west'))
-          ? (combined.find(c => c.name.toLowerCase().includes('polytechnic')) || first)
-          : (combined.find(c => c.name.toLowerCase().includes('engineering') || c.name.includes('SSJCOE')) || first);
-        setDestination(target.lat, target.lng, target.name);
-      }
+    // Show dropdown of matching results
+    renderSearchResults(combined);
+
+    // Auto-select best match directly so route draws immediately on search!
+    const target = (qLower.includes('jondhale') || qLower.includes('shivajirao') || qLower.includes('ssjcoe'))
+      ? ((qLower.includes('polytechnic') || qLower.includes('west'))
+          ? (combined.find(c => c.name.toLowerCase().includes('polytechnic')) || combined[0])
+          : (combined.find(c => c.name.toLowerCase().includes('engineering') || c.name.includes('SSJCOE')) || combined[0]))
+      : combined[0];
+
+    if (target) {
+      const inputEl = els.destSearchInput || document.getElementById('dest-search-input');
+      if (inputEl) inputEl.value = target.name;
+      setDestination(target.lat, target.lng, target.name);
     }
+  }
+
+  let searchDebounceTimer = null;
+  if (els.destSearchInput) {
+    els.destSearchInput.addEventListener('input', (e) => {
+      clearTimeout(searchDebounceTimer);
+      const val = e.target.value.trim().toLowerCase();
+      if (val.length < 2) {
+        const dropdown = els.searchResultsDropdown || document.getElementById('search-results-dropdown');
+        if (dropdown) dropdown.classList.add('hidden');
+        return;
+      }
+      searchDebounceTimer = setTimeout(() => {
+        const matches = LOCAL_LANDMARKS.filter(lm => {
+          return lm.name.toLowerCase().includes(val) || lm.keywords.some(k => k.includes(val) || val.includes(k));
+        });
+        if (matches.length > 0) {
+          renderSearchResults(matches);
+        }
+      }, 200);
+    });
+
+    els.destSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleDestinationSearch();
+    });
   }
 
   if (els.btnSearchDest) {
     els.btnSearchDest.addEventListener('click', handleDestinationSearch);
-  }
-  if (els.destSearchInput) {
-    els.destSearchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') handleDestinationSearch();
-    });
   }
 
   if (els.btnSpeakInstruction) {
